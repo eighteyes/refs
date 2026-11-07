@@ -17,7 +17,7 @@ import (
 	"unicode/utf8"
 )
 
-var reserved = map[string]bool{"rm": true, "kind": true, "kinds": true, "home": true, "install": true, "hook": true}
+var reserved = map[string]bool{"rm": true, "kind": true, "kinds": true, "home": true, "seed": true, "hook": true}
 
 var linkRE = regexp.MustCompile(`^\[([^\]]+)\]\(([^)\s\p{Z}\x{85}\x{1c}-\x{1f}]+)\)\n?$`)
 

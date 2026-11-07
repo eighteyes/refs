@@ -133,7 +133,7 @@ func TestNoHTMLEscapeAndASCII(t *testing.T) {
 func TestReservedAndInvalidKeys(t *testing.T) {
 	root := sandbox(t)
 	cases := map[string]string{
-		"install": "is a refs subcommand",
+		"seed":    "is a refs subcommand",
 		"-x":      "looks like a flag",
 		"9abc":    "must start with a non-digit",
 	}
@@ -487,5 +487,39 @@ func TestHookIgnoresMalformedStore(t *testing.T) {
 	os.WriteFile(filepath.Join(root, ".ai", "refs.json"), []byte("junk"), 0o644)
 	if got := hookCtx(t, `{"cwd":"`+root+`"}`); got != hookText+" This project has 0 refs." {
 		t.Errorf("got %q", got)
+	}
+}
+
+func TestSeed(t *testing.T) {
+	root := sandbox(t)
+	r := mustOK(t, refs("seed"))
+	if r.out != hookEmpty+"\n" || r.err != "" {
+		t.Errorf("seed without store: %+v", r)
+	}
+	if _, err := os.Stat(filepath.Join(root, ".ai", "refs.json")); err == nil {
+		t.Error("seed wrote a store")
+	}
+	mustOK(t, refs("R1", "x", "--kind", "req"))
+	before := readStore(t, root)
+	if r := mustOK(t, refs("seed")); r.out != hookEmpty+"\n" || r.err != "" {
+		t.Errorf("seed with store: %+v", r)
+	}
+	if readStore(t, root) != before {
+		t.Error("seed changed the store")
+	}
+}
+
+func TestSeedRejectsArgs(t *testing.T) {
+	sandbox(t)
+	r := refs("seed", "extra")
+	if r.code != 1 || r.out != "" || r.err != "refs: usage: refs seed\n" {
+		t.Errorf("seed args: %+v", r)
+	}
+}
+
+func TestInstallIsAKey(t *testing.T) {
+	sandbox(t)
+	if r := mustOK(t, refs("install", "v", "--kind", "k")); r.out != "set install [k]\n" {
+		t.Errorf("install key: %+v", r)
 	}
 }

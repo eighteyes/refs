@@ -1,7 +1,7 @@
 // main.go — entry point and shared plumbing for the refs CLI.
 //
 // Responsibilities:
-//   - dispatch argv: --help, `hook`, everything else to the refs command
+//   - dispatch argv: --help, `hook`, `seed`, everything else to the refs command
 //   - own the app type (stdin/stdout/stderr) so tests can drive the CLI in-process
 //   - die(): print `refs: ...` to stderr and unwind with an exit code
 //   - hold the HELP text, written for a model reader
@@ -19,6 +19,7 @@ WHEN
   Run ` + "`refs`" + ` at session start and after compaction to recall the pillars.
   Add one when a requirement, PR, or decision starts to bound your work.
   ` + "`refs rm KEY`" + ` when it is done. Read on demand; nothing is injected.
+  Run ` + "`refs seed`" + ` when the project has no refs, for how to populate them.
 
 USAGE
   refs                              list refs
@@ -28,11 +29,12 @@ USAGE
   refs kind PREFIX NAME             name a key prefix; ` + "`refs kinds`" + ` lists them
   refs home KEY PATH[:LINE]         set the source-of-truth file
   refs home KEY --clear
+  refs seed                         print how to populate an empty project
   refs hook                         SessionStart hook (stdin payload, JSON out)
 
 KEYS
   Key prefix is the kind: R20 -> R, pr#131 -> pr#. Keys start with a non-digit
-  and not '-'. Reserved: rm kind kinds home install hook.
+  and not '-'. Reserved: rm kind kinds home seed hook.
   Unknown prefix saves as kind=unknown and nags; define it with --kind or
   ` + "`refs kind PREFIX NAME`" + `.
   VALUE of the form [title](url) is parsed into title and url.
@@ -76,6 +78,12 @@ func run(argv []string, stdin io.Reader, stdout, stderr io.Writer) (code int) {
 			return 0
 		case "hook":
 			return a.cmdHook()
+		case "seed":
+			if len(argv) > 1 {
+				a.die("usage: refs seed")
+			}
+			io.WriteString(stdout, hookEmpty+"\n")
+			return 0
 		}
 	}
 	return a.cmdRefs(argv)
