@@ -38,6 +38,14 @@ A ref may point at its source-of-truth file. Stored root-relative, `:LINE`
 kept. Outside the project is refused. A missing file warns. Setting a value
 without `--home` keeps the old home.
 
+## Harvest
+
+`skills/harvest` turns an existing repo into facts and refs. It reads docs, git
+history, GitHub and code; writes invariants, nevers and decisions to
+`docs/INVARIANTS.md`, `docs/NEVERS.md` and `docs/DECISIONS.md`; and
+`skills/harvest/bin/sync.sh --github` mirrors every entry, open issue and PR
+into refs with a home at its line. Run `/refs:harvest`.
+
 ## Install
 
 Two ways. Both need Go.
