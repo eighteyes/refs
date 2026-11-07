@@ -133,15 +133,18 @@ func TestNoHTMLEscapeAndASCII(t *testing.T) {
 func TestReservedAndInvalidKeys(t *testing.T) {
 	root := sandbox(t)
 	cases := map[string]string{
-		"seed":    "is a refs subcommand",
-		"-x":      "looks like a flag",
-		"9abc":    "must start with a non-digit",
+		"-x":   "looks like a flag",
+		"9abc": "must start with a non-digit",
 	}
 	for key, msg := range cases {
 		r := refs(key, "v")
 		if r.code != 1 || !strings.Contains(r.err, msg) || !strings.HasPrefix(r.err, "refs: ") {
 			t.Errorf("%s: %+v", key, r)
 		}
+	}
+	// "seed" with a value is a usage error, not a key
+	if r := refs("seed", "v"); r.code != 1 || !strings.Contains(r.err, "usage: refs seed") {
+		t.Errorf("seed as key: %+v", r)
 	}
 	// "hook" with a value is the hook subcommand; check the others reserved by name
 	for _, key := range []string{"rm", "kind", "kinds", "home"} {
