@@ -1,0 +1,16 @@
+{
+  "description": "SessionStart hook that tells the agent this project keeps refs.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/refs hook"
+          }
+        ]
+      }
+    ]
+  }
+}

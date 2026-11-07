@@ -1,0 +1,329 @@
+#!/usr/bin/env python3
+# refs — a per-project key-value store for the pillars of an agent session.
+#
+# Responsibilities:
+#   - keep <root>/.ai/refs.json: requirements, PRs, decisions, keyed by short ids
+#   - list / show / set / remove refs; label key prefixes with kinds
+#   - give a ref an optional root-relative home (source-of-truth file[:LINE])
+#   - `refs hook`: answer a SessionStart hook; seed an empty project, else a standing line
+#   - ships as a Claude Code plugin (.claude-plugin/, hooks/hooks.json)
+#   - `refs --help`: usage written for a model reader
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+RESERVED = {"rm", "kind", "kinds", "home", "install", "hook"}
+LINK_RE = re.compile(r"^\[([^\]]+)\]\(([^)\s]+)\)$")
+HOME_LINE_RE = re.compile(r"^(.*):(\d+)$")
+HOOK_TEXT = ("refs: this project keeps session pillars (requirements, PRs, decisions) "
+             "— run `refs` to list them, `refs KEY VALUE` to add one. See `refs --help`.")
+HOOK_EMPTY = ("refs: this project has no refs yet. Your first step is to populate them: "
+              "skim the project (README, specs, open PRs/issues, recent decisions) and add "
+              "the pillars with `refs KEY VALUE --kind NAME [--home PATH]`, defining key "
+              "prefixes with `refs kind PREFIX NAME`. See `refs --help`.")
+
+HELP = """\
+refs — per-project key-value store for the pillars of your session
+(requirements, PRs, decisions). Stored in <project>/.ai/refs.json.
+
+WHEN
+  Run `refs` at session start and after compaction to recall the pillars.
+  Add one when a requirement, PR, or decision starts to bound your work.
+  `refs rm KEY` when it is done. Read on demand; nothing is injected.
+
+USAGE
+  refs                              list refs
+  refs KEY                          show one
+  refs KEY VALUE... [--kind NAME] [--home PATH[:LINE]]   set / overwrite
+  refs rm KEY
+  refs kind PREFIX NAME             name a key prefix; `refs kinds` lists them
+  refs home KEY PATH[:LINE]         set the source-of-truth file
+  refs home KEY --clear
+  refs hook                         SessionStart hook (stdin payload, JSON out)
+
+KEYS
+  Key prefix is the kind: R20 -> R, pr#131 -> pr#. Keys start with a non-digit
+  and not '-'. Reserved: rm kind kinds home install hook.
+  Unknown prefix saves as kind=unknown and nags; define it with --kind or
+  `refs kind PREFIX NAME`.
+  VALUE of the form [title](url) is parsed into title and url.
+
+HOME
+  --home PATH[:LINE] names the file that is the source of truth for a ref.
+  Stored root-relative; must live inside the project. Read the home before
+  trusting the value. Setting a value without --home keeps the existing home.
+"""
+
+
+def die(msg, code=1):
+    print(f"refs: {msg}", file=sys.stderr)
+    sys.exit(code)
+
+
+def now():
+    return time.strftime("%Y-%m-%dT%H:%M:%S%z")
+
+
+def project_root(cwd=None):
+    """Git toplevel of cwd, else cwd itself."""
+    cwd = str(cwd or os.getcwd())
+    try:
+        p = subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=cwd,
+                           capture_output=True, text=True, timeout=5)
+        top = p.stdout.strip()
+        if p.returncode == 0 and top:
+            return top
+    except Exception:
+        pass
+    return cwd
+
+
+def refs_path(root):
+    return Path(root) / ".ai" / "refs.json"
+
+
+def load_refs(root):
+    try:
+        store = json.loads(refs_path(root).read_text())
+    except Exception:
+        store = {}
+    if not isinstance(store, dict):
+        store = {}
+    if not isinstance(store.get("kinds"), dict):
+        store["kinds"] = {}
+    if not isinstance(store.get("refs"), dict):
+        store["refs"] = {}
+    return store
+
+
+def write_json(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(data, indent=2) + "\n")
+    os.replace(tmp, path)
+
+
+def save_refs(root, store):
+    write_json(refs_path(root), store)
+
+
+def ref_prefix(key):
+    """Leading non-digit characters; a key with no digits is its own prefix."""
+    return re.match(r"\D*", key).group(0)
+
+
+def home_parts(home):
+    """Split a stored home into (path, line-suffix); suffix is '' or ':N'."""
+    m = HOME_LINE_RE.match(home)
+    return (m.group(1), ":" + m.group(2)) if m else (home, "")
+
+
+def normalize_home(root, raw):
+    """Resolve raw (cwd-relative, optional :LINE) to a root-relative stored home."""
+    path, line = home_parts(raw)
+    if not path:
+        die("home needs a PATH")
+    absolute = Path(os.path.realpath(Path(os.getcwd()) / os.path.expanduser(path)))
+    try:
+        rel = absolute.relative_to(os.path.realpath(root))
+    except ValueError:
+        die(f"home '{raw}' is outside the project root {root}; homes must live inside the project")
+    if not absolute.exists():
+        print(f"refs: home '{raw}' does not exist", file=sys.stderr)
+    return f"{rel}{line}"
+
+
+def ref_text(ref):
+    """One-line rendering of a ref's value; links read as `title — url`."""
+    if ref.get("url"):
+        return f"{ref.get('title') or ref['url']} — {ref['url']}"
+    return str(ref.get("value", ""))
+
+
+def cmd_refs(argv):
+    kind = None
+    home = None
+    clear = False
+    pos = []
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a == "--kind":
+            if i + 1 >= len(argv):
+                die("--kind needs a NAME")
+            kind = argv[i + 1]
+            i += 1
+        elif a.startswith("--kind="):
+            kind = a.split("=", 1)[1]
+        elif a == "--home":
+            if i + 1 >= len(argv):
+                die("--home needs a PATH")
+            home = argv[i + 1]
+            i += 1
+        elif a.startswith("--home="):
+            home = a.split("=", 1)[1]
+        elif a == "--clear":
+            clear = True
+        else:
+            pos.append(a)
+        i += 1
+
+    root = project_root()
+    store = load_refs(root)
+    kinds, refs = store["kinds"], store["refs"]
+
+    if not pos:
+        if not refs:
+            print(f"no refs in {refs_path(root)}")
+            return 0
+        w = max(len(k) for k in refs)
+        kw = max(len(str(r.get("kind", ""))) for r in refs.values())
+        for key, r in refs.items():
+            mark = f"  @ {r['home']}" if r.get("home") else ""
+            print(f"{str(r.get('kind', 'unknown')):<{kw}}  {key:<{w}}  {ref_text(r)}{mark}")
+        return 0
+
+    head, args = pos[0], pos[1:]
+
+    if clear and head != "home":
+        die("--clear applies only to: refs home KEY --clear")
+
+    if head == "kinds":
+        if not kinds:
+            print("no kinds defined")
+        for p, n in kinds.items():
+            print(f"{p}  {n}")
+        return 0
+
+    if head == "kind":
+        if len(args) != 2:
+            die("usage: refs kind PREFIX NAME")
+        prefix, name = args
+        kinds[prefix] = name
+        for key, r in refs.items():
+            if r.get("kind") == "unknown" and ref_prefix(key) == prefix:
+                r["kind"] = name
+        save_refs(root, store)
+        print(f"kind {prefix} = {name}")
+        return 0
+
+    if head == "home":
+        if clear:
+            if len(args) != 1:
+                die("usage: refs home KEY --clear")
+        elif len(args) != 2:
+            die("usage: refs home KEY PATH | refs home KEY --clear")
+        key = args[0]
+        if key not in refs:
+            die(f"no ref '{key}' in {refs_path(root)}")
+        if clear:
+            refs[key].pop("home", None)
+            save_refs(root, store)
+            print(f"home {key} cleared")
+            return 0
+        refs[key]["home"] = normalize_home(root, args[1])
+        save_refs(root, store)
+        print(f"home {key} = {refs[key]['home']}")
+        return 0
+
+    if head == "rm":
+        if len(args) != 1:
+            die("usage: refs rm KEY")
+        key = args[0]
+        if key not in refs:
+            die(f"no ref '{key}' in {refs_path(root)}")
+        del refs[key]
+        save_refs(root, store)
+        print(f"rm {key}")
+        return 0
+
+    key = head
+    if not args:
+        r = refs.get(key)
+        if not r:
+            die(f"no ref '{key}' in {refs_path(root)}")
+        print(f"{key}  [{r.get('kind', 'unknown')}]")
+        print(f"  value   {r.get('value', '')}")
+        if r.get("url"):
+            print(f"  title   {r.get('title')}")
+            print(f"  url     {r['url']}")
+        if r.get("home"):
+            hpath, _ = home_parts(r["home"])
+            print(f"  home    {r['home']}")
+            print(f"  open    file://{Path(root) / hpath}")
+        print(f"  set_at  {r.get('set_at')}")
+        return 0
+
+    # set / overwrite
+    if key in RESERVED:
+        die(f"'{key}' is a refs subcommand and cannot be a key")
+    if key.startswith("-"):
+        die(f"key '{key}' looks like a flag; keys cannot start with '-'")
+    if not key or key[0].isdigit():
+        die(f"key '{key}' must start with a non-digit prefix (e.g. R20, pr#131, adr-3)")
+    value = " ".join(args)
+    prefix = ref_prefix(key)
+    stored_home = normalize_home(root, home) if home is not None else None
+    if kind:
+        kinds[prefix] = kind
+    resolved = kinds.get(prefix, "unknown")
+    entry = {"kind": resolved, "value": value, "set_at": now()}
+    m = LINK_RE.match(value)
+    if m:
+        entry["title"], entry["url"] = m.group(1), m.group(2)
+    keep = stored_home or (refs.get(key) or {}).get("home")
+    if keep:
+        entry["home"] = keep
+    refs[key] = entry
+    save_refs(root, store)
+    print(f"set {key} [{resolved}]")
+    if resolved == "unknown":
+        print(f"refs: prefix '{prefix}' has no kind. Define it: "
+              f"refs kind {prefix} NAME", file=sys.stderr)
+    return 0
+
+
+def cmd_hook(argv):
+    """SessionStart hook. Never raises, always exits 0."""
+    try:
+        text = HOOK_TEXT
+        try:
+            payload = json.loads(sys.stdin.read())
+            cwd = payload.get("cwd") if isinstance(payload, dict) else None
+        except Exception:
+            cwd = None
+        try:
+            root = project_root(cwd if isinstance(cwd, str) and cwd else None)
+            if not refs_path(root).exists():
+                text = HOOK_EMPTY
+            else:
+                n = len(load_refs(root)["refs"])
+                text = f"{HOOK_TEXT} This project has {n} ref{'' if n == 1 else 's'}."
+        except Exception:
+            pass
+        out = {"hookSpecificOutput": {"hookEventName": "SessionStart",
+                                      "additionalContext": text}}
+        print(json.dumps(out, ensure_ascii=False))
+    except Exception:
+        try:
+            print("{}")
+        except Exception:
+            pass
+    return 0
+
+
+def main(argv):
+    if argv and argv[0] in ("-h", "--help", "help"):
+        print(HELP, end="")
+        return 0
+    if argv and argv[0] == "hook":
+        return cmd_hook(argv[1:])
+    return cmd_refs(argv)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
