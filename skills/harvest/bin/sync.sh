@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# sync.sh — mirror a repo's fact registries (and optionally open GitHub work) into refs
+# sync.sh — mirror a repo's canon (and optionally open GitHub work) into refs
 # Responsibilities:
 #   - read docs/INVARIANTS.md, docs/NEVERS.md, docs/DECISIONS.md headings: "## INV-03 <text>", "## DEC-07 · <date> — <clause>"
 #   - set one ref per live entry, home = file:line of its heading; kinds INV- invariant, NEV- never, DEC- decision

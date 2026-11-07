@@ -1,4 +1,4 @@
-# Fact formats
+# Canon formats
 
 Three files in the repo's `docs/`. Each entry is a `##` heading with a stable ID; `bin/sync.sh` reads the headings.
 

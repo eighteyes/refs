@@ -1,11 +1,11 @@
 ---
 name: harvest
-description: Turn an existing repo into facts and refs — read its docs, git history, GitHub issues and PRs, and code; write what holds as invariants (docs/INVARIANTS.md, INV-NN), nevers (docs/NEVERS.md, NEV-NN) and decisions (docs/DECISIONS.md, DEC-NN); then mirror every entry and the open issues and PRs into refs with a home at its line. Use when the refs hook says a project has no refs yet, or on "harvest", "/refs:harvest", "turn this repo into refs", "harvest facts", "bootstrap the registries". Do NOT use to add one ref by hand (use `refs KEY VALUE`).
+description: Turn an existing repo into canon and refs — read its docs, git history, GitHub issues and PRs, and code; write what holds as invariants (docs/INVARIANTS.md, INV-NN), nevers (docs/NEVERS.md, NEV-NN) and decisions (docs/DECISIONS.md, DEC-NN); then mirror every entry and the open issues and PRs into refs with a home at its line. Use when the refs hook says a project has no refs yet, or on "harvest", "/refs:harvest", "turn this repo into refs", "harvest the canon", "bootstrap the canon". Do NOT use to add one ref by hand (use `refs KEY VALUE`).
 ---
 
 # harvest
 
-Facts are the calls that outlive one issue: what always holds (invariants), what the code must never become (nevers), and what was chosen over what (decisions). They live in three files in the repo, versioned with the code. refs points at them, so every session can recall them by ID and read the source line before trusting the value.
+The canon is the set of calls that outlive one issue: what always holds (invariants), what the code must never become (nevers), and what was chosen over what (decisions). They live in three files in the repo, versioned with the code. refs points at them, so every session can recall them by ID and read the source line before trusting the value.
 
 Formats: `formats.md` beside this file.
 
@@ -29,7 +29,7 @@ One subagent per source, each brief carrying `formats.md` and the existing entri
 
 ## 3. Judge (the lead, not the subagents)
 
-- Dedupe across sources; one fact cited by two sources keeps both.
+- Dedupe across sources; one entry cited by two sources keeps both.
 - **Invariant**: a predicate, true or false, with a check. No check → find one or mark it `Check: review`.
 - **Never**: names a pull someone actually felt (a revert, a blocked PR, a "don't" in the docs). A generic warning is not an entry.
 - **Decision**: has a rejected alternative and a costly reversal. Otherwise drop it.
@@ -39,7 +39,7 @@ One subagent per source, each brief carrying `formats.md` and the existing entri
 
 - `stated: true` → append to its file with the next free ID. `Source:` (or `Anchors` for a DEC) is the cited line, commit or PR.
 - `stated: false` → under `## Proposed` at the end of its file, no ID, with its evidence.
-- Never rewrite an existing entry. A fact that changed meaning is a new entry plus `Retired: <date> <why>` on the old one.
+- Never rewrite an existing entry. An entry that changed meaning is a new entry plus `Retired: <date> <why>` on the old one.
 
 ## 5. The human promotes
 

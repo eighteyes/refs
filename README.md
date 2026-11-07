@@ -40,7 +40,7 @@ without `--home` keeps the old home.
 
 ## Harvest
 
-`skills/harvest` turns an existing repo into facts and refs. It reads docs, git
+`skills/harvest` turns an existing repo into canon and refs. It reads docs, git
 history, GitHub and code; writes invariants, nevers and decisions to
 `docs/INVARIANTS.md`, `docs/NEVERS.md` and `docs/DECISIONS.md`; and
 `skills/harvest/bin/sync.sh --github` mirrors every entry, open issue and PR

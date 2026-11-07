@@ -16,7 +16,7 @@ const hookText = "refs: this project keeps session pillars (requirements, PRs, d
 	"— run `refs` to list them, `refs KEY VALUE` to add one. See `refs --help`."
 
 const hookEmpty = "refs: this project has no refs yet. Your first step is to populate them: " +
-	"run the `harvest` skill (`/refs:harvest`) to turn the repo into facts " +
+	"run the `harvest` skill (`/refs:harvest`) to turn the repo into canon " +
 	"(invariants, nevers, decisions) and refs, or add pillars by hand with " +
 	"`refs KEY VALUE --kind NAME [--home PATH]`, defining key prefixes with " +
 	"`refs kind PREFIX NAME`. See `refs --help`."
