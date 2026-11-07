@@ -1,5 +1,5 @@
 {
   "name": "refs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A per-project key-value store for agent session pillars (requirements, PRs, decisions), read on demand."
 }

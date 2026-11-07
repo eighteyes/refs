@@ -3,7 +3,8 @@
 A per-project key-value store for the pillars of an agent session:
 requirements, PRs, decisions. Agents read it on demand.
 
-One file, [`bin/refs`](bin/refs). python3, stdlib only.
+Go, stdlib only. [`bin/refs`](bin/refs) is a small sh launcher that builds
+and runs it.
 
 	refs                              list
 	refs KEY                          show one
@@ -38,8 +39,14 @@ without `--home` keeps the old home.
 
 ## Install
 
-Add it as a Claude Code plugin from this directory. The plugin registers a
-SessionStart hook (`startup|resume|clear|compact`) that runs `refs hook`.
+Two ways. Both need Go.
+
+- On your PATH: `go install github.com/eighteyes/refs@latest`.
+- As a Claude Code plugin: add this directory as a plugin. The plugin
+  registers a SessionStart hook (`startup|resume|clear|compact`) that runs
+  `bin/refs hook`. The launcher builds the binary into `bin/.build/` on first
+  run and rebuilds when a `.go` file or `go.mod` changes. Without Go, the
+  hook tells the agent that refs needs Go.
 
 In a project with no `.ai/refs.json`, the hook tells the agent to populate
 the refs first. Otherwise it prints a one-line reminder and the ref count.
