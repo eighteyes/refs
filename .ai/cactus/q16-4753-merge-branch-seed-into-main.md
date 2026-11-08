@@ -1,6 +1,6 @@
 # q16 — Merge branch seed into main (fast-forward, local) and re-run go install?
 
-status: answered
+status: retired
 act: ask
 kind: confirm
 thread: seed

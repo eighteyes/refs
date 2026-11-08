@@ -1,6 +1,6 @@
 # q11 — Does the Go port of refs verify?
 
-status: passed
+status: retired
 act: review
 kind: confirm
 thread: go-port

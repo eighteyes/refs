@@ -1,6 +1,6 @@
 # q12 — Merge go-port into main (fast-forward, local only)?
 
-status: answered
+status: retired
 act: ask
 kind: confirm
 thread: go-port
