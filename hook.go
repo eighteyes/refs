@@ -13,7 +13,9 @@ import (
 )
 
 const hookText = "refs: this project keeps session pillars (requirements, PRs, decisions) " +
-	"— run `refs` to list them, `refs KEY VALUE` to add one. See `refs --help`."
+	"— run `refs` to list them, `refs KEY VALUE` to add one. " +
+	"When you post a cactus question, cite the refs it rests on with `--refs KEY[,KEY]` " +
+	"instead of restating them in --context. See `refs --help`."
 
 const hookEmpty = "refs: this project has no refs yet. Your first step is to populate them: " +
 	"run the `harvest` skill (`/refs:harvest`) to turn the repo into canon " +

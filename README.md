@@ -58,4 +58,4 @@ Two ways. Both need Go.
   hook tells the agent that refs needs Go.
 
 In a project with no `.ai/refs.json`, the hook tells the agent to populate
-the refs first. Otherwise it prints a one-line reminder and the ref count.
+the refs first. Otherwise it prints a one-line reminder, the ref count, and a nudge to cite refs on cactus questions with `--refs`.
