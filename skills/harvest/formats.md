@@ -1,11 +1,20 @@
 # Canon formats
 
-Three files in the repo's `docs/canon/`. Each entry is a `##` heading with a stable ID; `bin/sync.sh` reads the headings.
+Four files in the repo's `docs/canon/`. Each entry is a `##` heading with a stable ID; `bin/sync.sh` reads the headings.
 
 	file	ID	holds
+	docs/canon/REQUIREMENTS.md	REQ-NN	what the product must do, each with acceptance criteria
 	docs/canon/INVARIANTS.md	INV-NN	predicates that hold before and after every change
 	docs/canon/NEVERS.md	NEV-NN	shapes the code must not take, with the pull toward each
 	docs/canon/DECISIONS.md	DEC-NN	choices with a rejected alternative and a costly reversal
+
+## Requirement
+
+    ## REQ-04 <what the product must do, one line>
+    Why: <who needs it and what it serves>
+    Acceptance: <observable criteria, one per line, each with how to check it>
+    Applies to: <path globs, or all>
+    Source: <path:line, issue, PR or spec that states it>
 
 ## Invariant
 
@@ -46,4 +55,4 @@ Three files in the repo's `docs/canon/`. Each entry is a `##` heading with a sta
     # Invariants
     What must stay true in this codebase, before and after every change. Cite by ID.
 
-(`# Nevers` and `# Decisions` likewise.)
+(`# Requirements`, `# Nevers` and `# Decisions` likewise.)
