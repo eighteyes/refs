@@ -3,8 +3,8 @@
 Four files in the repo's `docs/canon/`. Each entry is a `##` heading with a stable ID; `bin/sync.sh` reads the headings.
 
 	file	ID	holds
-	docs/canon/REQUIREMENTS.md	REQ-NN	what the product must do, each with acceptance criteria
-	docs/canon/TRUTHS.md	TRU-NN	predicates that hold before and after every change
+	docs/canon/TRUTHS.md	TRU-NN	predicates that hold before and after every change (broader)
+	docs/canon/REQUIREMENTS.md	REQ-NN	what the product must do, each with acceptance criteria (granular)
 	docs/canon/NEVERS.md	NEV-NN	shapes the code must not take, with the pull toward each
 	docs/canon/DECISIONS.md	DEC-NN	choices with a rejected alternative and a costly reversal
 
