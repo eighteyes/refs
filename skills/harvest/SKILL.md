@@ -24,7 +24,7 @@ One subagent per source, each brief carrying `formats.md` and the existing entri
 - **history**: `git log` for reverts, large refactors, and messages that choose ("switch to", "instead of", "drop", "replace"). Each is a DEC candidate; the forces and the rejected option come from the message or the diff.
 - **github**: closed PR and issue discussions with a settled choice (`gh pr list --state merged --limit 50`, then `gh pr view N --comments` on the promising ones). Review comments that block a pattern → NEV candidates.
 - **code**: schemas, migrations, public API, config validation, tests named for a guarantee ("never", "always", "must", "rejects"). A test is a ready-made `Check:` line.
-- **cactus**: the answered records in `.ai/cactus/` that qualify: the row has an answer, the answer is not skipped, and the row has no `pr` tag (read rows with `cactus get qN ... --json`). Each is a DEC candidate; the forces and rejected options come from the record's choices and context.
+- **cactus**: the answered records in `.ai/cactus/` that qualify: the row has an answer, the answer is not skipped, the row has no `pr` tag, and it is not in thread `denied` (read rows with `cactus get qN ... --json`). Each is a DEC candidate; the forces and rejected options come from the record's choices and context.
 
 `stated: true` only when the source says it in words, quoted. Anything read off the code's shape alone is `stated: false`.
 

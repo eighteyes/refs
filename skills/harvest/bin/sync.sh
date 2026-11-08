@@ -5,7 +5,7 @@
 #   - set one ref per live entry, home = file:line of its heading; kinds REQ- requirement, TRU- truth, NEV- never, DEC- decision
 #   - remove the ref for an entry marked "Retired:" or "Superseded by"; remove refs whose entry is gone
 #   - --github: one ref per open issue (issue#N) and PR (pr#N) as [title](url); drop refs for closed ones
-#   - --cactus: one ref per answered cactus record (.ai/cactus/qN-*.md) as "<question> → <answer>", kind answer, home = the record, line 1; skips skipped answers and rows tagged with a pr; drops refs that no longer qualify; warns and skips when cactus is not on PATH
+#   - --cactus: one ref per answered cactus record (.ai/cactus/qN-*.md) as "<question> → <answer>", kind answer, home = the record, line 1; skips skipped answers and rows tagged with a pr and rows in thread denied; drops refs that no longer qualify; warns and skips when cactus is not on PATH
 #   - --dry-run prints the refs calls only
 # Usage: sync.sh [--github] [--cactus] [--dry-run]   (run from anywhere inside the repo)
 set -euo pipefail
@@ -75,8 +75,8 @@ if ((cactus_too)); then
         rows=$(for k in "${keys[@]}"; do cactus get "$k" --json 2>/dev/null || true; done | jq -s 'add // []')
       }
     fi
-    # key, question → answer for rows answered, not skipped, without a pr tag
-    qual=$(jq -r '.[] | select(.answer != null and (.answer.skipped | not) and .pr == null)
+    # key, question → answer for rows answered, not skipped, without a pr tag, not in thread denied (auto-posted blocked commands)
+    qual=$(jq -r '.[] | select(.answer != null and (.answer.skipped | not) and .pr == null and .thread != "denied")
       | (((.answer.selected // []) | join(", ")) as $s | (.answer.text // "") as $t
          | if $s == "" then $t elif $t == "" then $s else "\($s) — \($t)" end) as $a
       | select($a != "")
