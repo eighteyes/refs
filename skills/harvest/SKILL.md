@@ -1,24 +1,24 @@
 ---
 name: harvest
-description: Turn an existing repo into canon and refs — read its docs, git history, GitHub issues and PRs, and code; write what holds as requirements (docs/canon/REQUIREMENTS.md, REQ-NN), invariants (docs/canon/INVARIANTS.md, INV-NN), nevers (docs/canon/NEVERS.md, NEV-NN) and decisions (docs/canon/DECISIONS.md, DEC-NN); then mirror every entry and the open issues and PRs into refs with a home at its line. Use when the refs hook says a project has no refs yet, or on "harvest", "/refs:harvest", "turn this repo into refs", "harvest the canon", "bootstrap the canon". Do NOT use to add one ref by hand (use `refs KEY VALUE`).
+description: Turn an existing repo into canon and refs — read its docs, git history, GitHub issues and PRs, and code; write what holds as requirements (docs/canon/REQUIREMENTS.md, REQ-NN), truths (docs/canon/TRUTHS.md, TRU-NN), nevers (docs/canon/NEVERS.md, NEV-NN) and decisions (docs/canon/DECISIONS.md, DEC-NN); then mirror every entry and the open issues and PRs into refs with a home at its line. Use when the refs hook says a project has no refs yet, or on "harvest", "/refs:harvest", "turn this repo into refs", "harvest the canon", "bootstrap the canon". Do NOT use to add one ref by hand (use `refs KEY VALUE`).
 ---
 
 # harvest
 
-The canon is the set of calls that outlive one issue: what the product must do (requirements), what always holds (invariants), what the code must never become (nevers), and what was chosen over what (decisions). They live in four files in the repo, versioned with the code. refs points at them, so every session can recall them by ID and read the source line before trusting the value.
+The canon is the set of calls that outlive one issue: what the product must do (requirements), what always holds (truths), what the code must never become (nevers), and what was chosen over what (decisions). They live in four files in the repo, versioned with the code. refs points at them, so every session can recall them by ID and read the source line before trusting the value.
 
 Formats: `formats.md` beside this file.
 
 ## 1. Read what exists
 
-- `refs` (current refs) and `docs/canon/REQUIREMENTS.md`, `docs/canon/INVARIANTS.md`, `docs/canon/NEVERS.md`, `docs/canon/DECISIONS.md`. Missing files get created in step 4 from `formats.md`. Files at the legacy `docs/<NAME>.md`: `git mv` them into `docs/canon/` first (say so to the human), never keep two copies.
+- `refs` (current refs) and `docs/canon/REQUIREMENTS.md`, `docs/canon/TRUTHS.md`, `docs/canon/NEVERS.md`, `docs/canon/DECISIONS.md`. Missing files get created in step 4 from `formats.md`. Files at the legacy `docs/<NAME>.md`: `git mv` them into `docs/canon/` first (say so to the human), never keep two copies.
 - Note the next free ID per file. IDs never change and are never reused.
 
 ## 2. Harvest, four sources in parallel
 
 One subagent per source, each brief carrying `formats.md` and the existing entries so it skips duplicates. Each returns candidates, one per line:
 
-    {"type":"REQ|INV|NEV|DEC","title":"<one line>","fields":{...},"source":"<path:line | commit sha | PR url>","stated":true|false,"quote":"<the words that state it>"}
+    {"type":"REQ|TRU|NEV|DEC","title":"<one line>","fields":{...},"source":"<path:line | commit sha | PR url>","stated":true|false,"quote":"<the words that state it>"}
 
 - **docs**: README, CLAUDE.md, AGENTS.md (a `## Shape` block especially), CONTRIBUTING, `docs/`, an intent-shape doc. "Never", "always", "must", "do not", "we chose", "instead of".
 - **history**: `git log` for reverts, large refactors, and messages that choose ("switch to", "instead of", "drop", "replace"). Each is a DEC candidate; the forces and the rejected option come from the message or the diff.
@@ -30,8 +30,8 @@ One subagent per source, each brief carrying `formats.md` and the existing entri
 ## 3. Judge (the lead, not the subagents)
 
 - Dedupe across sources; one entry cited by two sources keeps both.
-- **Requirement**: a capability with acceptance criteria someone can check. A feature list, spec or README "what it does" section is a source; an issue's acceptance criteria is one only when the work shipped. A predicate about every case is an invariant instead.
-- **Invariant**: a predicate, true or false, with a check. No check → find one or mark it `Check: review`.
+- **Requirement**: a capability with acceptance criteria someone can check. A feature list, spec or README "what it does" section is a source; an issue's acceptance criteria is one only when the work shipped. A predicate about every case is a truth instead.
+- **Truth**: a predicate, true or false, with a check. No check → find one or mark it `Check: review`.
 - **Never**: names a pull someone actually felt (a revert, a blocked PR, a "don't" in the docs). A generic warning is not an entry.
 - **Decision**: has a rejected alternative and a costly reversal. Otherwise drop it.
 - Conflicting sources → keep both quotes, mark it `stated: false`, and ask.
@@ -50,6 +50,6 @@ Show the Proposed list (a cactus ask when cactus is installed, else in chat): ea
 
     bin/sync.sh --github
 
-One ref per live entry (`REQ-04`, `INV-03`, `NEV-02`, `DEC-07`) with its home at the heading line, one per open issue (`issue#12`) and PR (`pr#40`). Retired entries and closed issues lose their refs. Re-run it after any edit to the four files; it is idempotent. `--dry-run` prints the calls.
+One ref per live entry (`REQ-04`, `TRU-03`, `NEV-02`, `DEC-07`) with its home at the heading line, one per open issue (`issue#12`) and PR (`pr#40`). Retired entries and closed issues lose their refs. Re-run it after any edit to the four files; it is idempotent. `--dry-run` prints the calls.
 
 Leave committing the four files to the human or the session's commit flow.

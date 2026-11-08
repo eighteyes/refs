@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # sync.sh — mirror a repo's canon (and optionally open GitHub work) into refs
 # Responsibilities:
-#   - read docs/canon/{REQUIREMENTS,INVARIANTS,NEVERS,DECISIONS}.md (legacy fallback: docs/<NAME>.md) headings: "## INV-03 <text>", "## DEC-07 · <date> — <clause>"
-#   - set one ref per live entry, home = file:line of its heading; kinds REQ- requirement, INV- invariant, NEV- never, DEC- decision
+#   - read docs/canon/{REQUIREMENTS,TRUTHS,NEVERS,DECISIONS}.md (legacy fallbacks: docs/<NAME>.md; INVARIANTS.md with INV- ids, kind invariant) headings: "## TRU-03 <text>", "## DEC-07 · <date> — <clause>"
+#   - set one ref per live entry, home = file:line of its heading; kinds REQ- requirement, TRU- truth, NEV- never, DEC- decision
 #   - remove the ref for an entry marked "Retired:" or "Superseded by"; remove refs whose entry is gone
 #   - --github: one ref per open issue (issue#N) and PR (pr#N) as [title](url); drop refs for closed ones
 #   - --dry-run prints the refs calls only
@@ -20,10 +20,14 @@ cd "$root"
 run() { if ((dry)); then printf 'DRY refs'; printf ' %q' "$@"; echo; else "$refs_bin" "$@" >/dev/null; fi; }
 existing() { "$refs_bin" 2>/dev/null | awk '{print $2}' | grep -E "^$1" || true; }
 
-for spec in REQ-:requirement:REQUIREMENTS INV-:invariant:INVARIANTS NEV-:never:NEVERS DEC-:decision:DECISIONS; do
-  IFS=: read -r p kind name <<<"$spec"
+# prefix:kind:NAME[:legacy prefix:legacy kind:legacy NAME]
+for spec in REQ-:requirement:REQUIREMENTS TRU-:truth:TRUTHS:INV-:invariant:INVARIANTS NEV-:never:NEVERS DEC-:decision:DECISIONS; do
+  IFS=: read -r p kind name lp lkind lname <<<"$spec"
   f=docs/canon/$name.md
   [[ -f $f ]] || f=docs/$name.md      # legacy layout, before docs/canon/
+  if [[ ! -f $f && -n ${lname:-} ]]; then   # legacy name, before the rename
+    p=$lp; kind=$lkind; f=docs/canon/$lname.md; [[ -f $f ]] || f=docs/$lname.md
+  fi
   [[ -f $f ]] || continue
   run kind "$p" "$kind"
   live=()

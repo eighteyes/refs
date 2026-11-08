@@ -41,8 +41,8 @@ without `--home` keeps the old home.
 ## Harvest
 
 `skills/harvest` turns an existing repo into canon and refs. It reads docs, git
-history, GitHub and code; writes requirements, invariants, nevers and decisions to
-`docs/canon/REQUIREMENTS.md`, `docs/canon/INVARIANTS.md`, `docs/canon/NEVERS.md` and `docs/canon/DECISIONS.md`; and
+history, GitHub and code; writes requirements, truths, nevers and decisions to
+`docs/canon/REQUIREMENTS.md`, `docs/canon/TRUTHS.md`, `docs/canon/NEVERS.md` and `docs/canon/DECISIONS.md`; and
 `skills/harvest/bin/sync.sh --github` mirrors every entry, open issue and PR
 into refs with a home at its line. Run `/refs:harvest`.
 
