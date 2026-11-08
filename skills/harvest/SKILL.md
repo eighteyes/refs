@@ -14,7 +14,7 @@ Formats: `formats.md` beside this file.
 - `refs` (current refs) and `docs/canon/REQUIREMENTS.md`, `docs/canon/TRUTHS.md`, `docs/canon/NEVERS.md`, `docs/canon/DECISIONS.md`. Missing files get created in step 4 from `formats.md`. Files at the legacy `docs/<NAME>.md`: `git mv` them into `docs/canon/` first (say so to the human), never keep two copies.
 - Note the next free ID per file. IDs never change and are never reused.
 
-## 2. Harvest, four sources in parallel
+## 2. Harvest, five sources in parallel
 
 One subagent per source, each brief carrying `formats.md` and the existing entries so it skips duplicates. Each returns candidates, one per line:
 
@@ -24,6 +24,7 @@ One subagent per source, each brief carrying `formats.md` and the existing entri
 - **history**: `git log` for reverts, large refactors, and messages that choose ("switch to", "instead of", "drop", "replace"). Each is a DEC candidate; the forces and the rejected option come from the message or the diff.
 - **github**: closed PR and issue discussions with a settled choice (`gh pr list --state merged --limit 50`, then `gh pr view N --comments` on the promising ones). Review comments that block a pattern → NEV candidates.
 - **code**: schemas, migrations, public API, config validation, tests named for a guarantee ("never", "always", "must", "rejects"). A test is a ready-made `Check:` line.
+- **cactus**: the answered records in `.ai/cactus/` that qualify: the row has an answer, the answer is not skipped, and the row has no `pr` tag (read rows with `cactus get qN ... --json`). Each is a DEC candidate; the forces and rejected options come from the record's choices and context.
 
 `stated: true` only when the source says it in words, quoted. Anything read off the code's shape alone is `stated: false`.
 
@@ -48,8 +49,8 @@ Show the Proposed list (a cactus ask when cactus is installed, else in chat): ea
 
 ## 6. Mirror into refs
 
-    bin/sync.sh --github
+    bin/sync.sh --github --cactus
 
-One ref per live entry (`REQ-04`, `TRU-03`, `NEV-02`, `DEC-07`) with its home at the heading line, one per open issue (`issue#12`) and PR (`pr#40`). Retired entries and closed issues lose their refs. Re-run it after any edit to the four files; it is idempotent. `--dry-run` prints the calls.
+One ref per live entry (`REQ-04`, `TRU-03`, `NEV-02`, `DEC-07`) with its home at the heading line, one per open issue (`issue#12`) and PR (`pr#40`), one per qualifying cactus answer (`q19`, home at the record). Retired entries, closed issues and answers that stop qualifying lose their refs. Re-run it after any edit to the four files; it is idempotent. `--dry-run` prints the calls.
 
 Leave committing the four files to the human or the session's commit flow.
