@@ -1,11 +1,11 @@
 # Canon formats
 
-Three files in the repo's `docs/`. Each entry is a `##` heading with a stable ID; `bin/sync.sh` reads the headings.
+Three files in the repo's `docs/canon/`. Each entry is a `##` heading with a stable ID; `bin/sync.sh` reads the headings.
 
 	file	ID	holds
-	docs/INVARIANTS.md	INV-NN	predicates that hold before and after every change
-	docs/NEVERS.md	NEV-NN	shapes the code must not take, with the pull toward each
-	docs/DECISIONS.md	DEC-NN	choices with a rejected alternative and a costly reversal
+	docs/canon/INVARIANTS.md	INV-NN	predicates that hold before and after every change
+	docs/canon/NEVERS.md	NEV-NN	shapes the code must not take, with the pull toward each
+	docs/canon/DECISIONS.md	DEC-NN	choices with a rejected alternative and a costly reversal
 
 ## Invariant
 
@@ -38,6 +38,8 @@ Three files in the repo's `docs/`. Each entry is a `##` heading with a stable ID
 - IDs never change and are never reused.
 - Retire an entry with a `Retired: <date> <why>` line in its block. Decisions are append-only: a reversal is a new DEC that says `Supersedes DEC-NN`, and the old one gets `Retired: <date> superseded by DEC-MM`.
 - Unconfirmed candidates live under `## Proposed` at the end of the file, without IDs.
+- A decision too big for its entry also gets `docs/canon/adrs/DEC-07-<slug>.md` (full context, options weighed, consequences). The entry stays the summary and names it under Anchors: `Long form: adrs/DEC-07-<slug>.md`. refs points at the entry, not the long form.
+- Legacy layout: files at `docs/<NAME>.md` (before `docs/canon/`). Read them when `docs/canon/` has none; `sync.sh` does the same.
 
 ## New file header
 

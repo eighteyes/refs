@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # sync.sh — mirror a repo's canon (and optionally open GitHub work) into refs
 # Responsibilities:
-#   - read docs/INVARIANTS.md, docs/NEVERS.md, docs/DECISIONS.md headings: "## INV-03 <text>", "## DEC-07 · <date> — <clause>"
+#   - read docs/canon/{INVARIANTS,NEVERS,DECISIONS}.md (legacy fallback: docs/<NAME>.md) headings: "## INV-03 <text>", "## DEC-07 · <date> — <clause>"
 #   - set one ref per live entry, home = file:line of its heading; kinds INV- invariant, NEV- never, DEC- decision
 #   - remove the ref for an entry marked "Retired:" or "Superseded by"; remove refs whose entry is gone
 #   - --github: one ref per open issue (issue#N) and PR (pr#N) as [title](url); drop refs for closed ones
@@ -20,8 +20,10 @@ cd "$root"
 run() { if ((dry)); then printf 'DRY refs'; printf ' %q' "$@"; echo; else "$refs_bin" "$@" >/dev/null; fi; }
 existing() { "$refs_bin" 2>/dev/null | awk '{print $2}' | grep -E "^$1" || true; }
 
-for spec in INV-:invariant:docs/INVARIANTS.md NEV-:never:docs/NEVERS.md DEC-:decision:docs/DECISIONS.md; do
-  IFS=: read -r p kind f <<<"$spec"
+for spec in INV-:invariant:INVARIANTS NEV-:never:NEVERS DEC-:decision:DECISIONS; do
+  IFS=: read -r p kind name <<<"$spec"
+  f=docs/canon/$name.md
+  [[ -f $f ]] || f=docs/$name.md      # legacy layout, before docs/canon/
   [[ -f $f ]] || continue
   run kind "$p" "$kind"
   live=()

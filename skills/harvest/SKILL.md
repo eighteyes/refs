@@ -1,6 +1,6 @@
 ---
 name: harvest
-description: Turn an existing repo into canon and refs — read its docs, git history, GitHub issues and PRs, and code; write what holds as invariants (docs/INVARIANTS.md, INV-NN), nevers (docs/NEVERS.md, NEV-NN) and decisions (docs/DECISIONS.md, DEC-NN); then mirror every entry and the open issues and PRs into refs with a home at its line. Use when the refs hook says a project has no refs yet, or on "harvest", "/refs:harvest", "turn this repo into refs", "harvest the canon", "bootstrap the canon". Do NOT use to add one ref by hand (use `refs KEY VALUE`).
+description: Turn an existing repo into canon and refs — read its docs, git history, GitHub issues and PRs, and code; write what holds as invariants (docs/canon/INVARIANTS.md, INV-NN), nevers (docs/canon/NEVERS.md, NEV-NN) and decisions (docs/canon/DECISIONS.md, DEC-NN); then mirror every entry and the open issues and PRs into refs with a home at its line. Use when the refs hook says a project has no refs yet, or on "harvest", "/refs:harvest", "turn this repo into refs", "harvest the canon", "bootstrap the canon". Do NOT use to add one ref by hand (use `refs KEY VALUE`).
 ---
 
 # harvest
@@ -11,7 +11,7 @@ Formats: `formats.md` beside this file.
 
 ## 1. Read what exists
 
-- `refs` (current refs) and `docs/INVARIANTS.md`, `docs/NEVERS.md`, `docs/DECISIONS.md`. Missing files get created in step 4 from `formats.md`.
+- `refs` (current refs) and `docs/canon/INVARIANTS.md`, `docs/canon/NEVERS.md`, `docs/canon/DECISIONS.md`. Missing files get created in step 4 from `formats.md`. Files at the legacy `docs/<NAME>.md`: `git mv` them into `docs/canon/` first (say so to the human), never keep two copies.
 - Note the next free ID per file. IDs never change and are never reused.
 
 ## 2. Harvest, four sources in parallel
