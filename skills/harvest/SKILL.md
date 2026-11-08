@@ -20,7 +20,7 @@ One subagent per source, each brief carrying `formats.md` and the existing entri
 
     {"type":"REQ|TRU|NEV|DEC","title":"<one line>","fields":{...},"source":"<path:line | commit sha | PR url>","stated":true|false,"quote":"<the words that state it>"}
 
-- **docs**: README, CLAUDE.md, AGENTS.md (a `## Shape` block especially), CONTRIBUTING, `docs/`, an intent-shape doc. "Never", "always", "must", "do not", "we chose", "instead of".
+- **docs**: README, CLAUDE.md, AGENTS.md (a `## Shape` block especially), CONTRIBUTING, `docs/`, an intent-shape doc (its Truths and Nevers sections, or Inviolates in older docs, are stated entries; skip any line already tagged with a TRU- or NEV- ID). "Never", "always", "must", "do not", "we chose", "instead of".
 - **history**: `git log` for reverts, large refactors, and messages that choose ("switch to", "instead of", "drop", "replace"). Each is a DEC candidate; the forces and the rejected option come from the message or the diff.
 - **github**: closed PR and issue discussions with a settled choice (`gh pr list --state merged --limit 50`, then `gh pr view N --comments` on the promising ones). Review comments that block a pattern → NEV candidates.
 - **code**: schemas, migrations, public API, config validation, tests named for a guarantee ("never", "always", "must", "rejects"). A test is a ready-made `Check:` line.
