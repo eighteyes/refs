@@ -1,0 +1,341 @@
+{
+  "kinds": {
+    "q": "answer",
+    "REQ-": "requirement",
+    "TRU-": "truth",
+    "NEV-": "never",
+    "DEC-": "decision"
+  },
+  "refs": {
+    "q13": {
+      "kind": "answer",
+      "value": "What should 'refs seed' do (it replaces the reserved 'install')? \u2192 prompt",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q13-4748-what-should-refs-seed-do.md:1"
+    },
+    "q18": {
+      "kind": "answer",
+      "value": "Where does the new .claude-plugin/marketplace.json get committed? \u2192 feat-harvest",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q18-4828-where-does-the-new-claude-plugin-marketp.md:1"
+    },
+    "q19": {
+      "kind": "answer",
+      "value": "Decisions now land in 3 places: canon DECISIONS.md, know graph, cactus records. How should refs tie them? \u2192 cactus-promote, cactus-records \u2014 there should be a --pr flag to skep on the process noise",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q19-4864-decisions-now-land-in-3.md:1"
+    },
+    "q21": {
+      "kind": "answer",
+      "value": "What does the --pr flag mean for skipping process noise in cactus records? \u2192 cactus-tag",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q21-4872-what-does-the-pr-flag.md:1"
+    },
+    "q22": {
+      "kind": "answer",
+      "value": "Cactus records don't write the --pr tag. Add a pr: line to the record, or have sync ask the cactus DB? \u2192 db-lookup",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q22-4879-cactus-records-don-t-write-the.md:1"
+    },
+    "q23": {
+      "kind": "answer",
+      "value": "Who builds the harvest + sync.sh changes (cactus records as refs qN, cactus as a 5th harvest source)? \u2192 me",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q23-4880-who-builds-the-harvest.md:1"
+    },
+    "q25": {
+      "kind": "answer",
+      "value": "The --pr filter works, but 5 old merge rows (q11 q12 q14 q15 q16) are untagged and cactus won't tag answered rows. Handle them how? \u2192 skip-denied+allow",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q25-4890-the-pr-filter-works-but.md:1"
+    },
+    "q26": {
+      "kind": "answer",
+      "value": "What does the /refs-pane pane show? \u2192 counts, detail, grouped",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q26-4902-what-does-the-refs-pane-pane.md:1"
+    },
+    "q27": {
+      "kind": "answer",
+      "value": "What can you do from inside the pane? \u2192 open-home",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q27-4903-what-can-you-do-from.md:1"
+    },
+    "q28": {
+      "kind": "answer",
+      "value": "Where does the refs-pane mod live? \u2192 both",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q28-4904-where-does-the-refs-pane-mod.md:1"
+    },
+    "q8": {
+      "kind": "answer",
+      "value": "Go layout: module github.com/eighteyes/refs, package main at repo root \u2192 root-main",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q8-4718-go-layout-module-github-com-eighteyes-re.md:1"
+    },
+    "q9": {
+      "kind": "answer",
+      "value": "go install, build-on-first-run, or both: which one does the hook rely on? \u2192 both",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q9-4719-go-install-build-on-first-run-or-both.md:1"
+    },
+    "REQ-01": {
+      "kind": "requirement",
+      "value": "Set or overwrite a ref with `refs KEY VALUE`",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/REQUIREMENTS.md:4"
+    },
+    "REQ-02": {
+      "kind": "requirement",
+      "value": "An unknown key prefix saves as kind `unknown` and warns",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/REQUIREMENTS.md:12"
+    },
+    "REQ-03": {
+      "kind": "requirement",
+      "value": "The SessionStart hook seeds an empty project, else reminds",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/REQUIREMENTS.md:20"
+    },
+    "REQ-04": {
+      "kind": "requirement",
+      "value": "Setting a value without `--home` keeps the existing home",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/REQUIREMENTS.md:28"
+    },
+    "REQ-05": {
+      "kind": "requirement",
+      "value": "`refs seed` prints how to populate an empty project",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/REQUIREMENTS.md:35"
+    },
+    "REQ-06": {
+      "kind": "requirement",
+      "value": "sync.sh mirrors live canon, open GitHub work and qualifying cactus answers into refs",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/REQUIREMENTS.md:43"
+    },
+    "TRU-01": {
+      "kind": "truth",
+      "value": "`refs hook` always exits 0 and prints valid hook JSON",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:4"
+    },
+    "TRU-02": {
+      "kind": "truth",
+      "value": "Writes to refs.json are atomic",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:10"
+    },
+    "TRU-03": {
+      "kind": "truth",
+      "value": "Key order in refs.json is insertion order; a set replaces in place",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:16"
+    },
+    "TRU-04": {
+      "kind": "truth",
+      "value": "A stored home is root-relative and inside the project",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:22"
+    },
+    "TRU-05": {
+      "kind": "truth",
+      "value": "Reserved words (rm kind kinds home seed hook) are never keys",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:28"
+    },
+    "TRU-06": {
+      "kind": "truth",
+      "value": "A key never starts with a digit or `-`",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:34"
+    },
+    "TRU-07": {
+      "kind": "truth",
+      "value": "A rejected set never writes refs.json",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:40"
+    },
+    "TRU-08": {
+      "kind": "truth",
+      "value": "A missing or malformed refs.json loads as an empty store",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:46"
+    },
+    "TRU-09": {
+      "kind": "truth",
+      "value": "refs.json output is ASCII-escaped",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:52"
+    },
+    "TRU-10": {
+      "kind": "truth",
+      "value": "The project root is the git toplevel of cwd, else cwd",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:58"
+    },
+    "TRU-11": {
+      "kind": "truth",
+      "value": "The bin/refs launcher writes build output to stderr only",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:64"
+    },
+    "TRU-12": {
+      "kind": "truth",
+      "value": "Canon IDs never change and are never reused",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:70"
+    },
+    "TRU-13": {
+      "kind": "truth",
+      "value": "sync.sh is idempotent and drops refs whose source is gone or retired",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:76"
+    },
+    "TRU-14": {
+      "kind": "truth",
+      "value": "sync.sh --cactus never mirrors a skipped answer, a pr-tagged row or a denied-thread row",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/TRUTHS.md:82"
+    },
+    "NEV-01": {
+      "kind": "never",
+      "value": "A third-party module in the Go program",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/NEVERS.md:4"
+    },
+    "NEV-02": {
+      "kind": "never",
+      "value": "A new subcommand left out of `reserved`",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/NEVERS.md:10"
+    },
+    "NEV-03": {
+      "kind": "never",
+      "value": "Rewriting an existing canon entry in place",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/NEVERS.md:16"
+    },
+    "NEV-04": {
+      "kind": "never",
+      "value": "Promoting a Proposed candidate without the human's answer",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/NEVERS.md:22"
+    },
+    "NEV-05": {
+      "kind": "never",
+      "value": "A generic best-practice warning recorded as a never",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/NEVERS.md:28"
+    },
+    "DEC-01": {
+      "kind": "decision",
+      "value": "Write refs in Go, stdlib only",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:4"
+    },
+    "DEC-02": {
+      "kind": "decision",
+      "value": "Keep the store an insertion-ordered JSON codec, not Go maps",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:12"
+    },
+    "DEC-03": {
+      "kind": "decision",
+      "value": "Package main at the repo root, module github.com/eighteyes/refs",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:20"
+    },
+    "DEC-04": {
+      "kind": "decision",
+      "value": "Ship both a first-run launcher and `go install`",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:28"
+    },
+    "DEC-05": {
+      "kind": "decision",
+      "value": "`refs seed` prints the populate instructions and replaces the reserved `install`",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:36"
+    },
+    "DEC-06": {
+      "kind": "decision",
+      "value": "Canon lives in docs/canon/, with a legacy docs/ fallback",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:44"
+    },
+    "DEC-07": {
+      "kind": "decision",
+      "value": "Call invariants truths (TRU-NN) and keep legacy INV-NN IDs",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:52"
+    },
+    "DEC-08": {
+      "kind": "decision",
+      "value": "Cactus answers flow into canon and into refs as qN",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:60"
+    },
+    "DEC-09": {
+      "kind": "decision",
+      "value": "Filter process noise with cactus's `--pr` tag, read from the cactus DB",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:68"
+    },
+    "DEC-10": {
+      "kind": "decision",
+      "value": "Skip denied-thread rows, and let cactus tag answered rows with `--pr`",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:76"
+    },
+    "DEC-11": {
+      "kind": "decision",
+      "value": "refs-pane is read-only: grouped by kind, counts, detail, open home",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:84"
+    },
+    "DEC-12": {
+      "kind": "decision",
+      "value": "The repo is its own plugin marketplace, installed at user scope",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:92"
+    },
+    "q29": {
+      "kind": "answer",
+      "value": "Does the refs pane work live? \u2192 pass",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q29-4913-does-the-refs-pane-work.md:1"
+    },
+    "q34": {
+      "kind": "answer",
+      "value": "Make agents cite refs on cactus asks: where does the rule live? \u2192 cactus-skill, refs-hook",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q34-4919-make-agents-cite-refs-on.md:1"
+    },
+    "q35": {
+      "kind": "answer",
+      "value": "Promote the 2 Proposed decisions in DECISIONS.md? \u2192 req-kind, prefix-kind",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q35-4920-promote-the-2-proposed-decisions.md:1"
+    },
+    "q36": {
+      "kind": "answer",
+      "value": "Commit the new canon (docs/canon/*.md) and refs.json on feat/harvest? \u2192 canon+refs",
+      "set_at": "2026-11-07T23:41:50-0800",
+      "home": ".ai/cactus/q36-4921-commit-the-new-canon-docs-canon-md.md:1"
+    },
+    "DEC-13": {
+      "kind": "decision",
+      "value": "Requirements are a fourth canon kind (REQ-NN)",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:100"
+    },
+    "DEC-14": {
+      "kind": "decision",
+      "value": "A key's kind is its leading non-digit prefix",
+      "set_at": "2026-11-07T23:41:49-0800",
+      "home": "docs/canon/DECISIONS.md:108"
+    }
+  }
+}
