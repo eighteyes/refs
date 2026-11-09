@@ -1,6 +1,6 @@
 {
   "name": "refs-pane",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A live pane of the session project's refs, grouped by kind, with a detail card and open-home",
   "types": "./types/index.d.ts",
   "author": {

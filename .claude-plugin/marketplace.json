@@ -25,7 +25,7 @@
       "name": "refs-pane",
       "source": "./mods/refs-pane",
       "description": "A live pane of the project refs, tabbed by kind, with a detail card and open-home. Opened by /refs-pane.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "productivity",
       "tags": [
         "refs",

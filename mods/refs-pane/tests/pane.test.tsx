@@ -6,6 +6,8 @@
 // - open-home calls the OS opener with the absolute path (no :LINE)
 // - a missing file draws the empty state; malformed JSON draws an error line
 // - the pane redraws when refs.json changes
+// - arrows (through the Client in hooks/keys.tsx): left/right switch tab, up/down move the cursor, return opens the home;
+//   ctrl-arrows and other keys do nothing; the hint line is drawn
 
 import { expect, mock, test } from 'claude-code/testing'
 import type { On } from 'claude-code'
@@ -216,5 +218,59 @@ test('the pane redraws when refs.json changes', async ($, on) => {
 
   expect((await ui.find({ key: 'tab:all' }))?.text).toContain('all 2')
   expect(await ui.find({ key: 'ref:A2' })).toBeDefined()
+  await ui.unmount()
+})
+
+const ROW = /^(R1|R2|pr#1|X9) /
+
+test('left and right arrows switch tabs and wrap', async ($, on) => {
+  const { ui } = await mounted($, on, JSON.stringify(FILE))
+
+  await ui.key({ key: 'right' })
+  expect((await ui.find({ key: 'tab:requirement' }))?.text).toContain('[requirement 2]')
+  await ui.key({ key: 'left' })
+  await ui.key({ key: 'left' })
+  expect((await ui.find({ key: 'tab:unknown' }))?.text).toContain('[unknown 1]')
+  await ui.unmount()
+})
+
+test('up and down arrows move the cursor and stop at the ends', async ($, on) => {
+  const { ui } = await mounted($, on, JSON.stringify(FILE))
+
+  await ui.key({ key: 'down' })
+  await ui.key({ key: 'down' })
+  expect((await ui.find({ type: 'Text', text: ROW }))?.text).toContain('pr#1')
+  await ui.key({ key: 'up' })
+  expect((await ui.find({ type: 'Text', text: ROW }))?.text).toContain('R2')
+  await ui.key({ key: 'up' })
+  await ui.key({ key: 'up' })
+  expect((await ui.find({ type: 'Text', text: ROW }))?.text).toContain('R1')
+  await ui.unmount()
+})
+
+test('return opens the selected ref home; other keys do nothing', async ($, on) => {
+  const calls: string[][] = []
+  const { ui } = await mounted($, on, JSON.stringify(FILE), calls)
+
+  await ui.key({ key: 'x' })
+  await ui.key({ key: 'right', ctrl: true })
+  expect(calls.some(c => c[0] === 'open')).toBe(false)
+  expect((await ui.find({ key: 'tab:all' }))?.text).toContain('[all 4]')
+
+  await ui.key({ key: 'return' })
+  expect(calls).toContainEqual(['open', '/repo/docs/canon/REQUIREMENTS.md'])
+
+  await ui.key({ key: 'down' })
+  await ui.key({ key: 'return' })
+  expect((await ui.find({ type: 'Text', text: /has no home/ }))?.text).toMatch(/R2 has no home/)
+  await ui.unmount()
+})
+
+test('the hint line tells the person to click for arrows; hotkeys still work beside it', async ($, on) => {
+  const { ui } = await mounted($, on, JSON.stringify(FILE))
+
+  expect((await ui.find({ type: 'Text', text: /click here/, in: 'keys' }))?.text).toMatch(/←\/→ tabs/)
+  await ui.press({ key: 'tabnext' })
+  expect((await ui.find({ key: 'tab:requirement' }))?.text).toContain('[requirement 2]')
   await ui.unmount()
 })

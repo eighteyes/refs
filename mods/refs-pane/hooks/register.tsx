@@ -3,9 +3,12 @@
 // - polls it on a clock (stat mtime+size) and redraws when it changes; reads it only on a change
 // - draws a header (path, total, count per kind), refs grouped under kind headings (kinds order, `unknown` last),
 //   one Button per ref, and a detail card for the selected one
-// - tabs: All, then one per kind present; h/l switch tab (hotkeys take only letters, so not the arrows), a click on a tab shows it
+// - tabs: All, then one per kind present; h/l switch tab, a click on a tab shows it
 // - keys: j/k move the cursor within the tab, o opens the selected ref's home, Enter on the selected row does the same
 //   (Enter on another row selects it)
+// - arrows: a hotkey takes one letter or digit, so the real keys come through a Client (hooks/keys.tsx) that the person
+//   clicks to focus; it posts {tab}, {move} or {open}, handled at `ui.message` by the same switchTab/move/openHome
+//   (Esc releases the focus). h/l, j/k, o stay as the fallback.
 // - the one action opens the home file with the OS opener (open on darwin, xdg-open elsewhere); the pane never writes refs.json
 // - a missing file draws an empty state; malformed JSON draws an error line
 
@@ -228,8 +231,27 @@ export const register: Register = on => {
     return { text: 'refs pane opened.' }
   })
 
+  on('ui.message', { component: 'Pane', requestId: PANE }, async ($, e, next) => {
+    const d = e.data
+    if (typeof d === 'object' && d !== null && !Array.isArray(d)) {
+      const m = d as { tab?: unknown; move?: unknown; open?: unknown }
+      if (m.tab === 1 || m.tab === -1) await switchTab($, m.tab)
+      else if (m.move === 1 || m.move === -1) await move($, m.move)
+      else if (m.open === true) await openHome($)
+      try {
+        $.ui.invalidate('ui.render')
+      } catch {
+        // no surface attached
+      }
+    }
+    return next(e)
+  })
+
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const { Box, Text, Button } = $.ui.resolve(e)
+    const els = $.ui.resolve(e)
+    const { Box, Text, Button } = els
+    // mobile and vscode have no Client: the hotkeys alone serve there.
+    const Client = 'Client' in els ? els.Client : null
     if ((await read($, snap)).status === 'init') await poll($)
     const s = await read($, snap)
     const key = await read($, selected)
@@ -327,6 +349,7 @@ export const register: Register = on => {
             )}
           </Box>
         )}
+        {Client !== null && <Client key="keys" module="./keys.tsx" />}
         <Text dimColor>
           h/l tab · j/k move · o or enter opens home
         </Text>
