@@ -14,7 +14,24 @@
       "description": "A per-project key-value store for agent session pillars (requirements, PRs, decisions), read on demand. SessionStart hook tells the agent the refs exist.",
       "version": "0.3.0",
       "category": "productivity",
-      "tags": ["refs", "requirements", "decisions", "hooks"]
+      "tags": [
+        "refs",
+        "requirements",
+        "decisions",
+        "hooks"
+      ]
+    },
+    {
+      "name": "refs-pane",
+      "source": "./mods/refs-pane",
+      "description": "A live pane of the project refs, tabbed by kind, with a detail card and open-home. Opened by /refs-pane.",
+      "version": "0.1.0",
+      "category": "productivity",
+      "tags": [
+        "refs",
+        "pane",
+        "mod"
+      ]
     }
   ]
 }

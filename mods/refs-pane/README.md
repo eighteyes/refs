@@ -21,3 +21,9 @@ two seconds of a change. The pane never writes the file.
 
 Opening uses `open` on macOS and `xdg-open` elsewhere, on the home path under the project root (a `:LINE` suffix is
 dropped). A ref with no home shows a note instead.
+
+**Install**
+
+Listed in the refs marketplace (this repo). With the marketplace added:
+
+	claude plugin install refs-pane@refs --scope user
