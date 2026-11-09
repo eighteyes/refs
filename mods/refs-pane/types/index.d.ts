@@ -40,6 +40,8 @@ declare module 'claude-code' {
       note: string | null
       // The project root the store was found under; null until resolved.
       root: string | null
+      // The tab shown: 'all' or a kind name.
+      tab: string
     }
   }
 }

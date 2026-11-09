@@ -1,6 +1,6 @@
 // pane.test: refs-pane against a mocked file system and process.
 // - refs group under kind headings in kinds order, `unknown` last; links show their title
-// - the header counts the total and each kind
+// - the tab bar counts all and each kind; h/l switch tabs and wrap; a tab shows only its kind
 // - the selected ref's detail shows value, title/url, home, set_at; j/k move the cursor
 // - a ref with no home gets a note on open
 // - open-home calls the OS opener with the absolute path (no :LINE)
@@ -98,11 +98,36 @@ for (const surface of ['terminal', 'desktop'] as const) {
   })
 }
 
-test('the header counts the total and each kind', async ($, on) => {
+test('the tab bar counts all and each kind, All first and selected', async ($, on) => {
   const { ui } = await mounted($, on, JSON.stringify(FILE))
 
   expect((await ui.find({ type: 'Text', text: /\/repo\/\.ai\/refs\.json/ }))?.text).toBe(PATH)
-  expect((await ui.find({ type: 'Text', text: /4 refs/ }))?.text).toContain('requirement 2 · pr 1 · unknown 1')
+  expect((await ui.find({ key: 'tab:all' }))?.text).toContain('[all 4]')
+  expect((await ui.find({ key: 'tab:requirement' }))?.text).toContain('requirement 2')
+  expect((await ui.find({ key: 'tab:pr' }))?.text).toContain('pr 1')
+  expect((await ui.find({ key: 'tab:unknown' }))?.text).toContain('unknown 1')
+  await ui.unmount()
+})
+
+test('h and l switch tabs and wrap; a tab shows only its kind; a click on a tab shows it', async ($, on) => {
+  const { ui } = await mounted($, on, JSON.stringify(FILE))
+
+  await ui.press({ key: 'tabnext' })
+  expect((await ui.find({ key: 'tab:requirement' }))?.text).toContain('[requirement 2]')
+  expect(await ui.find({ key: 'ref:pr#1' })).toBeUndefined()
+  expect(await ui.find({ key: 'ref:R1' })).toBeDefined()
+  await ui.press({ key: 'next' })
+  await ui.press({ key: 'next' })
+  expect((await ui.find({ type: 'Text', text: /^(R1|R2|pr#1|X9) / }))?.text).toContain('R2')
+
+  await ui.press({ key: 'tabprev' })
+  await ui.press({ key: 'tabprev' })
+  expect((await ui.find({ key: 'tab:unknown' }))?.text).toContain('[unknown 1]')
+  expect((await ui.find({ type: 'Text', text: /^(R1|R2|pr#1|X9) / }))?.text).toContain('X9')
+
+  await ui.press({ key: 'tab:pr' })
+  expect((await ui.find({ key: 'tab:pr' }))?.text).toContain('[pr 1]')
+  expect((await ui.find({ type: 'Text', text: /^(R1|R2|pr#1|X9) / }))?.text).toContain('pr#1')
   await ui.unmount()
 })
 
@@ -184,12 +209,12 @@ test('malformed JSON draws an error line, not a crash', async ($, on) => {
 
 test('the pane redraws when refs.json changes', async ($, on) => {
   const { ui, files, clock } = await mounted($, on, JSON.stringify({ kinds: {}, refs: { A1: { kind: 'unknown', value: 'one' } } }))
-  expect((await ui.find({ type: 'Text', text: /1 refs/ }))).toBeDefined()
+  expect((await ui.find({ key: 'tab:all' }))?.text).toContain('all 1')
 
   files.text = JSON.stringify({ kinds: {}, refs: { A1: { kind: 'unknown', value: 'one' }, A2: { kind: 'unknown', value: 'two' } } })
   await clock.advance(2000)
 
-  expect(await ui.find({ type: 'Text', text: /2 refs/ })).toBeDefined()
+  expect((await ui.find({ key: 'tab:all' }))?.text).toContain('all 2')
   expect(await ui.find({ key: 'ref:A2' })).toBeDefined()
   await ui.unmount()
 })

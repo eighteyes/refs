@@ -3,7 +3,8 @@
 // - polls it on a clock (stat mtime+size) and redraws when it changes; reads it only on a change
 // - draws a header (path, total, count per kind), refs grouped under kind headings (kinds order, `unknown` last),
 //   one Button per ref, and a detail card for the selected one
-// - keys: j/k move the cursor, o opens the selected ref's home, Enter on the selected row does the same
+// - tabs: All, then one per kind present; h/l switch tab (hotkeys take only letters, so not the arrows), a click on a tab shows it
+// - keys: j/k move the cursor within the tab, o opens the selected ref's home, Enter on the selected row does the same
 //   (Enter on another row selects it)
 // - the one action opens the home file with the OS opener (open on darwin, xdg-open elsewhere); the pane never writes refs.json
 // - a missing file draws an empty state; malformed JSON draws an error line
@@ -16,12 +17,14 @@ import type { Entry, RefsFile, Snap } from '../types'
 const PANE = 'refs-pane'
 const POLL_MS = 2000
 const UNKNOWN = 'unknown'
+const ALL = 'all'
 
 const INIT: Snap = { status: 'init', path: '', error: null, kindOrder: [], entries: [], sig: '' }
 const snap = atom({ plugin: 'refs-pane', key: 'snap' } as const, INIT)
 const selected = atom({ plugin: 'refs-pane', key: 'selected' } as const, null)
 const note = atom({ plugin: 'refs-pane', key: 'note' } as const, null)
 const root = atom({ plugin: 'refs-pane', key: 'root' } as const, null)
+const tab = atom({ plugin: 'refs-pane', key: 'tab' } as const, ALL)
 
 let timer: Timer | null = null
 
@@ -109,8 +112,10 @@ async function poll($: EngineInterface): Promise<void> {
     next = { ...INIT, status: 'error', path, sig, error: `cannot read: ${firstLine(why)}` }
   }
   await update($, snap, () => next)
-  const keys = next.entries.map(e => e.key)
-  const top = groupsOf(next)[0]?.entries[0]?.key ?? null
+  await update($, tab, cur => (tabsOf(next).includes(cur) ? cur : ALL))
+  const shown = shownGroups(next, await read($, tab)).flatMap(g => g.entries)
+  const keys = shown.map(e => e.key)
+  const top = shown[0]?.key ?? null
   await update($, selected, cur => (cur !== null && keys.includes(cur) ? cur : top))
   try {
     $.ui.invalidate('ui.render')
@@ -128,6 +133,25 @@ function groupsOf(s: Snap): Group[] {
     .filter(g => g.entries.length > 0)
 }
 
+function tabsOf(s: Snap): string[] {
+  return [ALL, ...groupsOf(s).map(g => g.kind)]
+}
+
+function shownGroups(s: Snap, t: string): Group[] {
+  const groups = groupsOf(s)
+  return t === ALL ? groups : groups.filter(g => g.kind === t)
+}
+
+async function switchTab($: EngineInterface, to: string | number): Promise<void> {
+  const s = await read($, snap)
+  const tabs = tabsOf(s)
+  const cur = Math.max(0, tabs.indexOf(await read($, tab)))
+  const next = typeof to === 'string' ? to : tabs[(cur + to + tabs.length) % tabs.length] ?? ALL
+  await update($, tab, () => next)
+  await update($, selected, () => shownGroups(s, next)[0]?.entries[0]?.key ?? null)
+  await update($, note, () => null)
+}
+
 function shownValue(e: Entry): string {
   return (e.title && e.url ? e.title : e.value).replace(/\s+/g, ' ')
 }
@@ -143,7 +167,7 @@ function homePath(home: string): string {
 }
 
 async function move($: EngineInterface, by: number): Promise<void> {
-  const flat = groupsOf(await read($, snap)).flatMap(g => g.entries)
+  const flat = shownGroups(await read($, snap), await read($, tab)).flatMap(g => g.entries)
   if (flat.length === 0) return
   const sel = await read($, selected)
   const cur = flat.findIndex(e => e.key === sel)
@@ -239,16 +263,24 @@ export const register: Register = on => {
       )
     }
 
-    const groups = groupsOf(s)
-    const counts = groups.map(g => `${g.kind} ${g.entries.length}`).join(' · ')
-    const current = s.entries.find(r => r.key === key) ?? groups[0]?.entries[0]
+    const t = await read($, tab)
+    const groups = shownGroups(s, t)
+    const current = groups.flatMap(g => g.entries).find(r => r.key === key) ?? groups[0]?.entries[0]
+    const countOf = (name: string) => (name === ALL ? s.entries.length : s.entries.filter(r => r.kind === name).length)
 
     return (
       <Box flexDirection="column">
         {head}
-        <Text wrap="truncate-end">
-          {s.entries.length} refs · {counts}
-        </Text>
+        <Box key="tabs" flexDirection="row" flexWrap="wrap">
+          {tabsOf(s).map(name => (
+            <Button
+              key={`tab:${name}`}
+              label={name === t ? `[${name} ${countOf(name)}]` : ` ${name} ${countOf(name)} `}
+              plain
+              onPress={() => void switchTab($, name)}
+            />
+          ))}
+        </Box>
         {groups.map(g => (
           <Box key={`kind:${g.kind}`} flexDirection="column">
             <Text bold dimColor>
@@ -296,12 +328,14 @@ export const register: Register = on => {
           </Box>
         )}
         <Text dimColor>
-          j/k move · o or enter opens home
+          h/l tab · j/k move · o or enter opens home
         </Text>
         <Box display="none" flexDirection="row">
           <Button key="next" label="down" hotkey="j" plain onPress={() => void move($, 1)} />
           <Button key="prev" label="up" hotkey="k" plain onPress={() => void move($, -1)} />
           <Button key="open" label="open home" hotkey="o" plain onPress={() => void openHome($)} />
+          <Button key="tabprev" label="previous tab" hotkey="h" plain onPress={() => void switchTab($, -1)} />
+          <Button key="tabnext" label="next tab" hotkey="l" plain onPress={() => void switchTab($, 1)} />
         </Box>
       </Box>
     )
