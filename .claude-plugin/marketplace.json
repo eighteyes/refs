@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Per-project key-value store for agent session pillars",
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "plugins": [
     {
       "name": "refs",
       "source": "./",
       "description": "A per-project key-value store for agent session pillars (requirements, PRs, decisions), read on demand. SessionStart hook tells the agent the refs exist.",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "category": "productivity",
       "tags": ["refs", "requirements", "decisions", "hooks"]
     }
