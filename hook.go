@@ -2,7 +2,7 @@
 //
 // Responsibilities:
 //   - read the hook payload JSON from stdin and take `cwd`
-//   - print hookSpecificOutput.additionalContext: seed text for an empty project, else a standing line + ref count + canon blurb (canon files present, counts by kind)
+//   - print hookSpecificOutput.additionalContext: seed text for an empty project, else a standing line + ref count + canon blurb (canon files present, counts by kind) + the ids mode sentence
 //   - never fail: garbage input or errors still yield valid JSON and exit 0
 package main
 
@@ -31,13 +31,22 @@ func hookContext(cwd string) string {
 	if _, err := os.Stat(refsPath(root)); err != nil {
 		return hookEmpty
 	}
-	all := asObj(loadRefs(root).Get("refs"))
+	store := loadRefs(root)
+	all := asObj(store.Get("refs"))
 	n := all.Len()
 	s := hookText + " This project has " + itoa(n) + " ref"
 	if n != 1 {
 		s += "s"
 	}
-	return s + "." + canonBlurb(root, all)
+	s += "." + canonBlurb(root, all)
+	if strings.Contains(s, " Canon in docs/canon/") {
+		if idsMode(store) == "fixed" {
+			s += " Canon IDs are fixed."
+		} else {
+			s += " Canon IDs are fluid and may be renumbered; cite an ID with its title."
+		}
+	}
+	return s
 }
 
 // canonFiles are the canon docs under docs/canon/, in blurb order.

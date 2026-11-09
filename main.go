@@ -31,15 +31,23 @@ USAGE
   refs kind PREFIX NAME             name a key prefix; ` + "`refs kinds`" + ` lists them
   refs home KEY PATH[:LINE]         set the source-of-truth file
   refs home KEY --clear
+  refs ids [fixed|fluid]            show or set whether canon IDs may change
   refs seed                         print how to populate an empty project
   refs hook                         SessionStart hook (stdin payload, JSON out)
 
 KEYS
   Key prefix is the kind: R20 -> R, pr#131 -> pr#. Keys start with a non-digit
-  and not '-'. Reserved: rm kind kinds home seed hook.
+  and not '-'. Reserved: rm kind kinds home seed hook ids.
   Unknown prefix saves as kind=unknown and nags; define it with --kind or
   ` + "`refs kind PREFIX NAME`" + `.
   VALUE of the form [title](url) is parsed into title and url.
+
+IDS
+  Canon IDs (TRU-03, DEC-14...) are fluid or fixed, per project. Stored as
+  "ids" in refs.json; absent means fluid. ` + "`refs ids`" + ` prints the mode.
+  fluid: the tighten skill may renumber, delete, reuse and reorder canon IDs.
+  fixed: IDs never change and are never reused.
+  Projects start fluid; run ` + "`refs ids fixed`" + ` once the canon settles.
 
 HOME
   --home PATH[:LINE] names the file that is the source of truth for a ref.

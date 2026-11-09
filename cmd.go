@@ -1,4 +1,4 @@
-// cmd.go — the refs command: list (optionally filtered by --kind), show, set, rm, kind, kinds, home.
+// cmd.go — the refs command: list (optionally filtered by --kind), show, set, rm, kind, kinds, home, ids.
 //
 // Responsibilities:
 //   - parse flags by hand (--kind, --home, --clear, with `=` forms)
@@ -17,7 +17,7 @@ import (
 	"unicode/utf8"
 )
 
-var reserved = map[string]bool{"rm": true, "kind": true, "kinds": true, "home": true, "seed": true, "hook": true}
+var reserved = map[string]bool{"rm": true, "kind": true, "kinds": true, "home": true, "seed": true, "hook": true, "ids": true}
 
 var linkRE = regexp.MustCompile(`^\[([^\]]+)\]\(([^)\s\p{Z}\x{85}\x{1c}-\x{1f}]+)\)\n?$`)
 
@@ -155,6 +155,19 @@ func (a *app) cmdRefs(argv []string) int {
 		}
 		save()
 		a.out("kind %s = %s\n", prefix, name)
+		return 0
+
+	case "ids":
+		if len(args) == 0 {
+			a.out("%s\n", idsMode(store))
+			return 0
+		}
+		if len(args) != 1 || (args[0] != "fixed" && args[0] != "fluid") {
+			a.die("usage: refs ids [fixed|fluid]")
+		}
+		store.Set("ids", args[0])
+		save()
+		a.out("ids = %s\n", args[0])
 		return 0
 
 	case "home":

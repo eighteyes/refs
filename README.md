@@ -13,6 +13,7 @@ and runs it.
 	refs rm KEY
 	refs kind PREFIX NAME / refs kinds
 	refs home KEY PATH[:LINE] / refs home KEY --clear
+	refs ids [fixed|fluid]            show or set whether canon IDs may change
 	refs seed                         how to populate an empty project
 	refs hook                         the hook itself
 	refs --help                       usage, written for a model
@@ -22,10 +23,17 @@ and runs it.
 `<root>/.ai/refs.json`, `{"kinds": {}, "refs": {}}`. Root is the git toplevel
 of the current directory, else the directory itself. Writes are atomic.
 
+## Canon IDs
+
+`refs ids` prints `fluid` or `fixed`. Fluid (the default, field absent): the
+tighten skill may renumber, delete, reuse and reorder canon IDs. Fixed: IDs
+never change and are never reused. Set fixed once the canon settles. The mode
+is the top-level `"ids"` field of `refs.json`, written only when set.
+
 ## Keys and kinds
 
 The key prefix is the kind: `R20` is `R`, `pr#131` is `pr#`. Keys start with a
-non-digit, never `-`. Reserved: `rm kind kinds home seed hook`.
+non-digit, never `-`. Reserved: `rm kind kinds home seed hook ids`.
 
 An unknown prefix saves as kind `unknown` and nags. Name it with `--kind`, or
 `refs kind PREFIX NAME`, which also relabels existing unknown refs.

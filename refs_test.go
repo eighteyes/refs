@@ -571,3 +571,78 @@ func TestHookCanonBlurb(t *testing.T) {
 		t.Errorf("some canon: %q", got)
 	}
 }
+
+// ---- ids ----
+
+func TestIdsDefaultAndSet(t *testing.T) {
+	root := sandbox(t)
+	if r := mustOK(t, refs("ids")); r.out != "fluid\n" {
+		t.Errorf("default: %q", r.out)
+	}
+	if _, err := os.Stat(filepath.Join(root, ".ai", "refs.json")); err == nil {
+		t.Error("reading ids wrote a store")
+	}
+	if r := mustOK(t, refs("ids", "fixed")); r.out != "ids = fixed\n" {
+		t.Errorf("set fixed: %q", r.out)
+	}
+	if r := mustOK(t, refs("ids")); r.out != "fixed\n" {
+		t.Errorf("read fixed: %q", r.out)
+	}
+	mustOK(t, refs("ids", "fluid"))
+	if r := mustOK(t, refs("ids")); r.out != "fluid\n" {
+		t.Errorf("read fluid: %q", r.out)
+	}
+}
+
+func TestIdsBadValueAndReserved(t *testing.T) {
+	root := sandbox(t)
+	if !reserved["ids"] {
+		t.Error("ids is not reserved")
+	}
+	for _, args := range [][]string{{"ids", "frozen"}, {"ids", "fixed", "x"}} {
+		r := refs(args...)
+		if r.code != 1 || !strings.Contains(r.err, "usage: refs ids [fixed|fluid]") {
+			t.Errorf("%v: %+v", args, r)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(root, ".ai", "refs.json")); err == nil {
+		t.Error("bad ids value wrote a store")
+	}
+}
+
+func TestIdsPersistsAcrossSets(t *testing.T) {
+	root := sandbox(t)
+	mustOK(t, refs("R1", "a", "--kind", "r"))
+	if s := readStore(t, root); strings.Contains(s, `"ids"`) {
+		t.Errorf("ids written before set: %s", s)
+	}
+	mustOK(t, refs("ids", "fixed"))
+	mustOK(t, refs("R2", "b"))
+	mustOK(t, refs("rm", "R1"))
+	mustOK(t, refs("kind", "X", "x"))
+	if r := mustOK(t, refs("ids")); r.out != "fixed\n" {
+		t.Errorf("lost: %q", r.out)
+	}
+	if s := readStore(t, root); !strings.Contains(s, `"ids": "fixed"`) {
+		t.Errorf("store: %s", s)
+	}
+}
+
+func TestHookIdsSentence(t *testing.T) {
+	root := sandbox(t)
+	mustOK(t, refs("TRU-01", "a", "--kind", "truth"))
+	payload := `{"cwd":"` + root + `"}`
+	if got := hookCtx(t, payload); strings.Contains(got, "Canon IDs") {
+		t.Errorf("no canon files, sentence present: %q", got)
+	}
+	canon := filepath.Join(root, "docs", "canon")
+	os.MkdirAll(canon, 0o755)
+	os.WriteFile(filepath.Join(canon, "TRUTHS.md"), []byte("x"), 0o644)
+	if got := hookCtx(t, payload); !strings.HasSuffix(got, " Canon IDs are fluid and may be renumbered; cite an ID with its title.") {
+		t.Errorf("fluid: %q", got)
+	}
+	mustOK(t, refs("ids", "fixed"))
+	if got := hookCtx(t, payload); !strings.HasSuffix(got, " Canon IDs are fixed.") {
+		t.Errorf("fixed: %q", got)
+	}
+}

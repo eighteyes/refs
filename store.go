@@ -262,6 +262,14 @@ func loadRefs(root string) *omap {
 	return store
 }
 
+// idsMode reports whether canon IDs are "fixed" or "fluid"; absent or any other value reads as fluid.
+func idsMode(store *omap) string {
+	if store.Get("ids") == "fixed" {
+		return "fixed"
+	}
+	return "fluid"
+}
+
 // saveRefs writes tmp then renames, so readers never see a partial file.
 func saveRefs(root string, store *omap) error {
 	path := refsPath(root)
