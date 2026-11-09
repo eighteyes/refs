@@ -7,6 +7,7 @@ Go, stdlib only. [`bin/refs`](bin/refs) is a small sh launcher that builds
 and runs it.
 
 	refs                              list
+	refs --kind NAME|PREFIX           list only that kind or key prefix
 	refs KEY                          show one
 	refs KEY VALUE... [--kind NAME] [--home PATH[:LINE]]   set / overwrite
 	refs rm KEY

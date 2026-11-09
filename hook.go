@@ -2,7 +2,7 @@
 //
 // Responsibilities:
 //   - read the hook payload JSON from stdin and take `cwd`
-//   - print hookSpecificOutput.additionalContext: seed text for an empty project, else a standing line + ref count
+//   - print hookSpecificOutput.additionalContext: seed text for an empty project, else a standing line + ref count + canon blurb (canon files present, counts by kind)
 //   - never fail: garbage input or errors still yield valid JSON and exit 0
 package main
 
@@ -10,6 +10,8 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 const hookText = "refs: this project keeps session pillars (requirements, PRs, decisions) " +
@@ -29,12 +31,54 @@ func hookContext(cwd string) string {
 	if _, err := os.Stat(refsPath(root)); err != nil {
 		return hookEmpty
 	}
-	n := asObj(loadRefs(root).Get("refs")).Len()
+	all := asObj(loadRefs(root).Get("refs"))
+	n := all.Len()
 	s := hookText + " This project has " + itoa(n) + " ref"
 	if n != 1 {
 		s += "s"
 	}
-	return s + "."
+	return s + "." + canonBlurb(root, all)
+}
+
+// canonFiles are the canon docs under docs/canon/, in blurb order.
+var canonFiles = []struct{ file, kind string }{
+	{"REQUIREMENTS.md", "requirement"},
+	{"TRUTHS.md", "truth"},
+	{"NEVERS.md", "never"},
+	{"DECISIONS.md", "decision"},
+	{"INQUIRY.md", "inquiry"},
+	{"OPEN_QUESTIONS.md", "open"},
+}
+
+// canonBlurb names the canon files present (stat only) with their ref counts by kind.
+func canonBlurb(root string, refs *omap) string {
+	counts := map[string]int{}
+	first := map[string]string{} // kind -> first key of that kind
+	for _, k := range refs.keys {
+		kind := pystr(asObj(refs.Get(k)).Get("kind"))
+		counts[kind]++
+		if _, ok := first[kind]; !ok {
+			first[kind] = k
+		}
+	}
+	var parts []string
+	exKey, exKind := "", ""
+	for _, c := range canonFiles {
+		if _, err := os.Stat(filepath.Join(root, "docs", "canon", c.file)); err == nil {
+			parts = append(parts, c.file+" ("+itoa(counts[c.kind])+" "+c.kind+")")
+			if exKey == "" && first[c.kind] != "" {
+				exKey, exKind = first[c.kind], c.kind
+			}
+		}
+	}
+	if exKey == "" {
+		exKey, exKind = "KEY", "NAME"
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return " Canon in docs/canon/: " + strings.Join(parts, ", ") +
+		". Read one with `refs " + exKey + "` (its home is the source line); list a kind with `refs --kind " + exKind + "`."
 }
 
 func (a *app) cmdHook() (code int) {

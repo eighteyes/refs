@@ -43,7 +43,7 @@ echo '{"cwd":"'"$d"'"}' | /path/to/refs/bin/refs hook
 - **Dispatch**: `run` handles `--help`, `hook` and `seed` (`seed` prints `hookEmpty` as plain text; extra args fail with `usage: refs seed`). Everything else goes to `cmdRefs`, which parses flags (`--kind`, `--home`, `--clear`) by hand and then matches the first positional against subcommands. If none match, it is a KEY: show it with no value args, set it with value args. Any new subcommand name must go into `reserved` so it can't be used as a key.
 - **Entry fields**: `kind`, `value` (verbatim, args joined by spaces), `set_at`. Optional `title`/`url` when the value matches `[title](url)`. Optional `home`. Overwriting a ref without `--home` keeps its old home.
 - **Home**: `normalizeHome` resolves the path relative to cwd, stores it relative to root, keeps a `:LINE` suffix, refuses paths outside the root, and only warns when the file is missing.
-- **Hook contract**: `cmdHook` reads the SessionStart JSON from stdin (it uses `cwd`), prints `hookSpecificOutput.additionalContext`, and must always exit 0 and never raise. It prints `hookEmpty` when no `refs.json` exists, otherwise `hookText` plus the ref count.
+- **Hook contract**: `cmdHook` reads the SessionStart JSON from stdin (it uses `cwd`), prints `hookSpecificOutput.additionalContext`, and must always exit 0 and never raise. It prints `hookEmpty` when no `refs.json` exists, otherwise `hookText` plus the ref count, plus a canon blurb listing which of the six `docs/canon/*.md` files exist (stat only) with ref counts by kind (none present, no blurb).
 
 ## Keep in sync
 

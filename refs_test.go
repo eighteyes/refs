@@ -526,3 +526,48 @@ func TestInstallIsAKey(t *testing.T) {
 		t.Errorf("install key: %+v", r)
 	}
 }
+
+// ---- kind filter ----
+
+func TestKindFilter(t *testing.T) {
+	sandbox(t)
+	mustOK(t, refs("TRU-01", "t one", "--kind", "truth"))
+	mustOK(t, refs("TRU-02", "t two"))
+	mustOK(t, refs("NEV-01", "n one", "--kind", "never"))
+	for _, f := range []string{"truth", "TRU-"} {
+		r := mustOK(t, refs("--kind", f))
+		if !strings.Contains(r.out, "TRU-01") || !strings.Contains(r.out, "TRU-02") || strings.Contains(r.out, "NEV-01") || r.err != "" {
+			t.Errorf("--kind %s: %+v", f, r)
+		}
+	}
+	r := mustOK(t, refs("--kind=never"))
+	if strings.Count(r.out, "\n") != 1 || !strings.Contains(r.out, "NEV-01") {
+		t.Errorf("--kind=never: %+v", r)
+	}
+	r = mustOK(t, refs("--kind", "nope"))
+	if r.out != "" || strings.Count(r.err, "\n") != 1 {
+		t.Errorf("no match: %+v", r)
+	}
+}
+
+func TestHookCanonBlurb(t *testing.T) {
+	root := sandbox(t)
+	mustOK(t, refs("TRU-01", "a", "--kind", "truth"))
+	mustOK(t, refs("TRU-02", "b"))
+	mustOK(t, refs("NEV-01", "c", "--kind", "never"))
+	payload := `{"cwd":"` + root + `"}`
+	base := hookText + " This project has 3 refs."
+	if got := hookCtx(t, payload); got != base {
+		t.Errorf("no canon: %q", got)
+	}
+	canon := filepath.Join(root, "docs", "canon")
+	os.MkdirAll(canon, 0o755)
+	for _, f := range []string{"NEVERS.md", "TRUTHS.md", "OPEN_QUESTIONS.md"} {
+		os.WriteFile(filepath.Join(canon, f), []byte("x"), 0o644)
+	}
+	got := hookCtx(t, payload)
+	want := base + " Canon in docs/canon/: TRUTHS.md (2 truth), NEVERS.md (1 never), OPEN_QUESTIONS.md (0 open)."
+	if !strings.HasPrefix(got, want) || !strings.Contains(got, "`refs --kind truth`") || strings.Contains(got, "REQUIREMENTS.md") {
+		t.Errorf("some canon: %q", got)
+	}
+}

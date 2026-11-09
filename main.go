@@ -23,6 +23,8 @@ WHEN
 
 USAGE
   refs                              list refs
+  refs --kind NAME|PREFIX           list only refs of that kind or key prefix
+                                    (refs --kind truth, refs --kind TRU-)
   refs KEY                          show one
   refs KEY VALUE... [--kind NAME] [--home PATH[:LINE]]   set / overwrite
   refs rm KEY

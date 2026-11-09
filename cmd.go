@@ -1,4 +1,4 @@
-// cmd.go — the refs command: list, show, set, rm, kind, kinds, home.
+// cmd.go — the refs command: list (optionally filtered by --kind), show, set, rm, kind, kinds, home.
 //
 // Responsibilities:
 //   - parse flags by hand (--kind, --home, --clear, with `=` forms)
@@ -86,8 +86,23 @@ func (a *app) cmdRefs(argv []string) int {
 			a.out("no refs in %s\n", refsPath(root))
 			return 0
 		}
+		// --kind NAME with no positionals filters by kind name or key prefix
+		keys := refs.keys
+		if kind != "" {
+			keys = nil
+			for _, k := range refs.keys {
+				kv, _ := asObj(refs.Get(k)).Lookup("kind")
+				if pystr(kv) == kind || prefixOf(k) == kind {
+					keys = append(keys, k)
+				}
+			}
+			if len(keys) == 0 {
+				fmt.Fprintf(a.stderr, "refs: no refs of kind or prefix '%s'\n", kind)
+				return 0
+			}
+		}
 		w, kw := 0, 0
-		for _, k := range refs.keys {
+		for _, k := range keys {
 			w = max(w, utf8.RuneCountInString(k))
 			kv, ok := asObj(refs.Get(k)).Lookup("kind")
 			if !ok {
@@ -95,7 +110,7 @@ func (a *app) cmdRefs(argv []string) int {
 			}
 			kw = max(kw, utf8.RuneCountInString(pystr(kv)))
 		}
-		for _, key := range refs.keys {
+		for _, key := range keys {
 			r := asObj(refs.Get(key))
 			mark := ""
 			if h := r.Get("home"); truthy(h) {
