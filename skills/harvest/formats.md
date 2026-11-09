@@ -65,7 +65,9 @@ A closed open question keeps its block and gains `Resolved: <date> → <DEC-NN |
 
 ## Rules
 
-- IDs never change and are never reused.
+- IDs follow the project's `refs ids` mode.
+  - **fixed**: IDs never change and are never reused.
+  - **fluid** (the default for a new project): tighten may renumber a file 01..N, delete retired entries, reuse a freed ID and reorder entries. Set fixed with `refs ids fixed` once the canon settles.
 - Retire an entry with a `Retired: <date> <why>` line in its block. Decisions are append-only: a reversal is a new DEC that says `Supersedes DEC-NN`, and the old one gets `Retired: <date> superseded by DEC-MM`.
 - Unconfirmed candidates live under `## Proposed` at the end of the file, without IDs.
 - A decision too big for its entry also gets `docs/canon/adrs/DEC-07-<slug>.md` (full context, options weighed, consequences). The entry stays the summary and names it under Anchors: `Long form: adrs/DEC-07-<slug>.md`. refs points at the entry, not the long form.

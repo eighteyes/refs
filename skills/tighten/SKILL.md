@@ -12,7 +12,7 @@ Formats: `../harvest/formats.md`.
 ## 1. Read
 
 - `refs`, and the six files in `docs/canon/`: REQUIREMENTS, TRUTHS, NEVERS, DECISIONS, INQUIRY, OPEN_QUESTIONS. Skip a file that does not exist; tighten never creates one.
-- Note the next free ID per file. IDs never change and are never reused.
+- Note the next free ID per file, and the ID mode: `refs ids` prints `fixed` or `fluid`.
 
 ## 2. Audit, one subagent per file
 
@@ -50,6 +50,12 @@ Each brief carries `formats.md`, the file, the rules below for its kind, and the
   - **reword** in place when the meaning holds: tighter words, a narrower `Applies to`, a real `Check:`.
   - **merge, split, move, or a change of meaning** retires the old ID (`Retired: <date> <why>, see <new ID>`) and adds a new entry with the next free ID in its file.
   - Decisions: a reversal is a new DEC with `Supersedes DEC-NN`.
+- **Fluid IDs only** (`refs ids` says `fluid`), after the edit rule:
+  - delete retired and resolved blocks instead of keeping them;
+  - reorder each file, most load-bearing first;
+  - renumber each file 01..N in its new order (a freed ID is reused by this);
+  - list every old → new ID in the step 4 batch, and after writing, rewrite those IDs where the repo cites them (`zg query --rg -n 'TRU-03'`) — docs, canon cross-references, CLAUDE.md. Commit messages and cactus records stay as they are.
+- **Fixed IDs**: none of the above; the edit rule alone.
 - Drop proposals without evidence.
 
 ## 4. The human approves

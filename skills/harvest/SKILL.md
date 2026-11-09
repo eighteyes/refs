@@ -12,7 +12,7 @@ Formats: `formats.md` beside this file.
 ## 1. Read what exists
 
 - `refs` (current refs) and `docs/canon/REQUIREMENTS.md`, `docs/canon/TRUTHS.md`, `docs/canon/NEVERS.md`, `docs/canon/DECISIONS.md`, `docs/canon/INQUIRY.md`, `docs/canon/OPEN_QUESTIONS.md`. Missing files get created in step 4 from `formats.md`. Files at the legacy `docs/<NAME>.md`: `git mv` them into `docs/canon/` first (say so to the human), never keep two copies.
-- Note the next free ID per file. IDs never change and are never reused.
+- Note the next free ID per file, and the ID mode (`refs ids`): fixed IDs never change and are never reused; fluid ones may be renumbered later by tighten. Harvest itself only appends.
 
 ## 2. Harvest, five sources in parallel
 
