@@ -20,7 +20,7 @@ One subagent per source, each brief carrying `formats.md` and the existing entri
 
     {"type":"REQ|TRU|NEV|DEC","title":"<one line>","fields":{...},"source":"<path:line | commit sha | PR url>","stated":true|false,"quote":"<the words that state it>"}
 
-- **docs**: README, CLAUDE.md, AGENTS.md (a `## Shape` block especially), CONTRIBUTING, `docs/`, an intent-shape doc (its Truths and Nevers sections, or Inviolates in older docs, are stated entries; skip any line already tagged with a TRU- or NEV- ID). "Never", "always", "must", "do not", "we chose", "instead of".
+- **docs**: README, CLAUDE.md, AGENTS.md (a `## Shape` block especially), CONTRIBUTING, `docs/`, an intent-shape doc (its Truths and Nevers sections, or Inviolates in older docs, are stated entries; skip any line already tagged with a TRU- or NEV- ID). "Never", "always", "must", "do not", "we chose", "instead of". For requirements, return what a person does and sees; sort caps, gates and infrastructure by the step 3 rules.
 - **history**: `git log` for reverts, large refactors, and messages that choose ("switch to", "instead of", "drop", "replace"). Each is a DEC candidate; the forces and the rejected option come from the message or the diff.
 - **github**: closed PR and issue discussions with a settled choice (`gh pr list --state merged --limit 50`, then `gh pr view N --comments` on the promising ones). Review comments that block a pattern → NEV candidates.
 - **code**: schemas, migrations, public API, config validation, tests named for a guarantee ("never", "always", "must", "rejects"). A test is a ready-made `Check:` line.
@@ -31,7 +31,11 @@ One subagent per source, each brief carrying `formats.md` and the existing entri
 ## 3. Judge (the lead, not the subagents)
 
 - Dedupe across sources; one entry cited by two sources keeps both.
-- **Requirement**: a capability with acceptance criteria someone can check. A feature list, spec or README "what it does" section is a source; an issue's acceptance criteria is one only when the work shipped. A predicate about every case is a truth instead.
+- **Requirement**: product level. A person who uses the product does something and sees a result: "An operator prices a building from its measurements." The title names who and what they do; Acceptance names what they see. A feature list, spec or README "what it does" section is a source; an issue's acceptance criteria is one only when the work shipped. A row in a requirements doc is a candidate to sort, not a requirement by default. Sort out what is not product level:
+  - a cap, limit, or "every / no path / at most N" rule → truth
+  - a switch, gate or phase ("off until", "behind a flag", "in phase 3") → decision, or drop
+  - hosting, database, deploy, security plumbing, test coverage → drop, or a truth when it states a guarantee
+  - the source names no outcome the person sees → write one Acceptance line from the source's words and mark it `stated: false`
 - **Truth**: a predicate, true or false, with a check. No check → find one or mark it `Check: review`.
 - **Never**: names a pull someone actually felt (a revert, a blocked PR, a "don't" in the docs). A generic warning is not an entry.
 - **Decision**: has a rejected alternative and a costly reversal. Otherwise drop it.

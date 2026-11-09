@@ -1,18 +1,21 @@
 # Canon formats
 
-Four files in the repo's `docs/canon/`. Each entry is a `##` heading with a stable ID; `bin/sync.sh` reads the headings.
+Six files in the repo's `docs/canon/`. Each entry is a `##` heading with a stable ID; `bin/sync.sh` reads the headings.
 
 	file	ID	holds
 	docs/canon/TRUTHS.md	TRU-NN	predicates that hold before and after every change (broader)
-	docs/canon/REQUIREMENTS.md	REQ-NN	what the product must do, each with acceptance criteria (granular)
+	docs/canon/REQUIREMENTS.md	REQ-NN	what a person can do with the product, each with what they see (product level)
 	docs/canon/NEVERS.md	NEV-NN	shapes the code must not take, with the pull toward each
 	docs/canon/DECISIONS.md	DEC-NN	choices with a rejected alternative and a costly reversal
+	docs/canon/INQUIRY.md	INQ-NN	what we are trying to answer by building this (long-lived)
+	docs/canon/OPEN_QUESTIONS.md	OQ-NN	unresolved frontier questions; each closes when answered
 
 ## Requirement
 
-    ## REQ-04 <what the product must do, one line>
-    Why: <who needs it and what it serves>
-    Acceptance: <observable criteria, one per line, each with how to check it>
+    ## REQ-04 <who> <does what>, one line
+    Who: <the person: operator, customer, admin, staff>
+    Why: <what it serves for them>
+    Acceptance: <what they see when it works, one per line, each checkable by using the product>
     Applies to: <path globs, or all>
     Source: <path:line, issue, PR or spec that states it>
 
@@ -42,6 +45,24 @@ Four files in the repo's `docs/canon/`. Each entry is a `##` heading with a stab
     - **Reversal** — the signal to revisit and what undoing takes; "one-way" if it cannot be undone
     - **Anchors** — path:line, commit or PR
 
+## Inquiry
+
+    ## INQ-02 <the question building this answers, one line>
+    Why: <what knowing the answer changes>
+    Answered when: <the evidence that would settle it>
+    Status: open | answered <date> by <IDs>
+    Source: <path:line, issue, PR or doc that asks it>
+
+## Open question
+
+    ## OQ-05 <the unresolved question, one line>
+    Blocks: <IDs or paths waiting on it>
+    Known options: <one per line>
+    Leaning: <current pick and why, or none>
+    Source: <path:line, issue, PR, cactus qN>
+
+A closed open question keeps its block and gains `Resolved: <date> → <DEC-NN | TRU-NN | qN>`; sync drops its ref.
+
 ## Rules
 
 - IDs never change and are never reused.
@@ -56,4 +77,4 @@ Four files in the repo's `docs/canon/`. Each entry is a `##` heading with a stab
     # Truths
     What must stay true in this codebase, before and after every change. Cite by ID.
 
-(`# Requirements`, `# Nevers` and `# Decisions` likewise.)
+(`# Requirements`, `# Nevers`, `# Decisions`, `# Inquiry` and `# Open questions` likewise.)
