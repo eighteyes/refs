@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # sync.sh — mirror a repo's canon (and optionally open GitHub work) into refs
 # Responsibilities:
-#   - read docs/canon/{REQUIREMENTS,TRUTHS,NEVERS,DECISIONS}.md (legacy fallbacks: docs/<NAME>.md; INVARIANTS.md with INV- ids, kind invariant) headings: "## TRU-03 <text>", "## DEC-07 · <date> — <clause>"
-#   - set one ref per live entry, home = file:line of its heading; kinds REQ- requirement, TRU- truth, NEV- never, DEC- decision
-#   - remove the ref for an entry marked "Retired:" or "Superseded by"; remove refs whose entry is gone
+#   - read docs/canon/{REQUIREMENTS,TRUTHS,NEVERS,DECISIONS,INQUIRY,OPEN_QUESTIONS}.md (legacy fallbacks: docs/<NAME>.md; INVARIANTS.md with INV- ids, kind invariant) headings: "## TRU-03 <text>", "## DEC-07 · <date> — <clause>"
+#   - set one ref per live entry, home = file:line of its heading; kinds REQ- requirement, TRU- truth, NEV- never, DEC- decision, INQ- inquiry, OQ- open
+#   - remove the ref for an entry marked "Retired:", "Superseded by" or "Resolved:" (a closed open question); remove refs whose entry is gone
 #   - --github: one ref per open issue (issue#N) and PR (pr#N) as [title](url); drop refs for closed ones
 #   - --cactus: one ref per answered cactus record (.ai/cactus/qN-*.md) as "<question> → <answer>", kind answer, home = the record, line 1; skips skipped answers and rows tagged with a pr and rows in thread denied; drops refs that no longer qualify; warns and skips when cactus is not on PATH
 #   - --dry-run prints the refs calls only
@@ -22,7 +22,7 @@ run() { if ((dry)); then printf 'DRY refs'; printf ' %q' "$@"; echo; else "$refs
 existing() { "$refs_bin" 2>/dev/null | awk '{print $2}' | grep -E "^$1" || true; }
 
 # prefix:kind:NAME[:legacy prefix:legacy kind:legacy NAME]
-for spec in REQ-:requirement:REQUIREMENTS TRU-:truth:TRUTHS:INV-:invariant:INVARIANTS NEV-:never:NEVERS DEC-:decision:DECISIONS; do
+for spec in REQ-:requirement:REQUIREMENTS TRU-:truth:TRUTHS:INV-:invariant:INVARIANTS NEV-:never:NEVERS DEC-:decision:DECISIONS INQ-:inquiry:INQUIRY OQ-:open:OPEN_QUESTIONS; do
   IFS=: read -r p kind name lp lkind lname <<<"$spec"
   f=docs/canon/$name.md
   [[ -f $f ]] || f=docs/$name.md      # legacy layout, before docs/canon/
@@ -43,7 +43,7 @@ for spec in REQ-:requirement:REQUIREMENTS TRU-:truth:TRUTHS:INV-:invariant:INVAR
                id=substr($0, 4, RLENGTH-3); txt=substr($0, RLENGTH+2)
                if (p == "DEC-") sub(/^[^—]*— /, "", txt)   # drop "· date — "
                ln=NR } next }
-    /^(Retired:|- \*\*Retired|Superseded by)/ { ret=1 }
+    /^(Retired:|- \*\*Retired|Superseded by|Resolved:)/ { ret=1 }
     END { flush() }' "$f")
   for k in $(existing "$p"); do
     [[ " ${live[*]-} " == *" $k "* ]] || run rm "$k"
