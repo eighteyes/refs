@@ -1,5 +1,10 @@
 {
   "name": "refs",
   "version": "0.4.0",
-  "description": "A per-project key-value store for agent session pillars (requirements, PRs, decisions), read on demand."
+  "description": "A per-project key-value store for agent session pillars (requirements, PRs, decisions), read on demand.",
+  "license": "MIT",
+  "author": {
+    "name": "Sean Canton"
+  },
+  "repository": "https://github.com/eighteyes/refs"
 }
