@@ -53,7 +53,7 @@ R1  [requirement]
 ```
 
 - **`prefix 'D' has no kind`**: the key's prefix (`D` in `D1`) has no name yet. The ref saves as `unknown`. Run `refs kind D decision`; it relabels the existing `unknown` refs too.
-- **Keys can't start with a digit or `-`**, and `rm kind kinds home seed hook ids` are reserved.
+- **Keys can't start with a digit or `-`**, and `rm kind kinds home seed hook ids sync` are reserved.
 - **Read the home before trusting the value.** The value is a note; the home is the source.
 
 ## For AI agents
@@ -81,7 +81,7 @@ Six files in `docs/canon/`. Each entry is a `##` heading with an ID; refs points
 | `/refs:harvest` | reads docs, git history, GitHub issues and PRs, code and answered cactus rows; writes stated entries with IDs and unstated ones under `## Proposed` for you to promote; mirrors everything into refs |
 | `/refs:tighten` | makes each truth one checkable predicate and each never a real pull with a real alternative; merges duplicates, moves misfiled entries, retires dead ones, resolves answered open questions; you approve each batch before it writes |
 
-`skills/harvest/bin/sync.sh --github --cactus` re-mirrors the canon, open issues and PRs (`issue#N`, `pr#N`) and answered cactus rows (`qN`) into refs. It is idempotent; `--dry-run` prints the calls.
+`refs sync --github --cactus` re-mirrors the canon, open issues and PRs (`issue#N`, `pr#N`) and answered cactus rows (`qN`) into refs. It is idempotent and leaves `set_at` alone on unchanged refs; `--dry-run` prints the changes and writes nothing. The canon part runs by itself: any refs command and the session hook re-read `docs/canon/*.md` first when a file is newer than `.ai/refs.json`. GitHub and cactus sync only when asked.
 
 **Fixed or fluid IDs.** `refs ids` prints the project's mode. Fluid, the default: tighten may renumber, delete, reuse and reorder IDs while the canon is still taking shape. Fixed: IDs never change and are never reused. Run `refs ids fixed` once the canon settles.
 
@@ -97,6 +97,7 @@ Six files in `docs/canon/`. Each entry is a `##` heading with an ID; refs points
 | `refs kind PREFIX NAME` / `refs kinds` | name a key prefix / list prefixes |
 | `refs home KEY PATH[:LINE]` / `refs home KEY --clear` | set or clear the home |
 | `refs ids [fixed\|fluid]` | show or set whether canon IDs may change |
+| `refs sync [--github] [--cactus] [--dry-run]` | mirror `docs/canon/*.md` (and open issues/PRs, answered cactus rows) into refs |
 | `refs seed` | print how to populate an empty project |
 | `refs hook` | the SessionStart hook: JSON payload on stdin, hook JSON out |
 

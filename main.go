@@ -1,7 +1,7 @@
 // main.go — entry point and shared plumbing for the refs CLI.
 //
 // Responsibilities:
-//   - dispatch argv: --help, `hook`, `seed`, everything else to the refs command
+//   - dispatch argv: --help, `hook`, `seed`, `sync`, everything else to the refs command
 //   - own the app type (stdin/stdout/stderr) so tests can drive the CLI in-process
 //   - die(): print `refs: ...` to stderr and unwind with an exit code
 //   - hold the HELP text, written for a model reader
@@ -32,12 +32,16 @@ USAGE
   refs home KEY PATH[:LINE]         set the source-of-truth file
   refs home KEY --clear
   refs ids [fixed|fluid]            show or set whether canon IDs may change
+  refs sync [--github] [--cactus] [--dry-run]
+                                    mirror docs/canon/*.md into refs (REQ- TRU- NEV- DEC-
+                                    INQ- OQ-); --github adds open issues/PRs, --cactus
+                                    answered cactus rows; --dry-run writes nothing
   refs seed                         print how to populate an empty project
   refs hook                         SessionStart hook (stdin payload, JSON out)
 
 KEYS
   Key prefix is the kind: R20 -> R, pr#131 -> pr#. Keys start with a non-digit
-  and not '-'. Reserved: rm kind kinds home seed hook ids.
+  and not '-'. Reserved: rm kind kinds home seed hook ids sync.
   Unknown prefix saves as kind=unknown and nags; define it with --kind or
   ` + "`refs kind PREFIX NAME`" + `.
   VALUE of the form [title](url) is parsed into title and url.
@@ -48,6 +52,11 @@ IDS
   fluid: the tighten skill may renumber, delete, reuse and reorder canon IDs.
   fixed: IDs never change and are never reused.
   Projects start fluid; run ` + "`refs ids fixed`" + ` once the canon settles.
+
+SYNC
+  Canon (docs/canon/*.md) syncs itself: any refs command or the hook re-reads
+  the canon first when a canon file is newer than refs.json. Edit the md, not
+  the refs. GitHub and cactus sync only on ` + "`refs sync --github --cactus`" + `.
 
 HOME
   --home PATH[:LINE] names the file that is the source of truth for a ref.
@@ -88,6 +97,8 @@ func run(argv []string, stdin io.Reader, stdout, stderr io.Writer) (code int) {
 			return 0
 		case "hook":
 			return a.cmdHook()
+		case "sync":
+			return a.cmdSync(argv[1:])
 		case "seed":
 			if len(argv) > 1 {
 				a.die("usage: refs seed")

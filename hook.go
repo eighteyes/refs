@@ -3,6 +3,7 @@
 // Responsibilities:
 //   - read the hook payload JSON from stdin and take `cwd`
 //   - print hookSpecificOutput.additionalContext: seed text for an empty project, else a standing line + ref count + canon blurb (canon files present, counts by kind) + the ids mode sentence
+//   - auto-sync the canon first when a canon file is newer than refs.json
 //   - never fail: garbage input or errors still yield valid JSON and exit 0
 package main
 
@@ -28,6 +29,7 @@ const hookEmpty = "refs: this project has no refs yet. Your first step is to pop
 // hookContext picks the additionalContext text for the project at cwd.
 func hookContext(cwd string) string {
 	root := projectRoot(cwd)
+	autoSync(root, io.Discard) // best effort; errors must not break the hook
 	if _, err := os.Stat(refsPath(root)); err != nil {
 		return hookEmpty
 	}

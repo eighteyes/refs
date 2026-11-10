@@ -5,6 +5,7 @@
 //   - cover list/show/set/rm/kind/kinds/home/--clear, key validation, link parsing
 //   - check insertion order, unknown-field preservation, home rules
 //   - check hook output for empty, populated and garbage input
+//   - cover `refs sync` (canon, dry-run, set_at stability, fake cactus) and the canon auto-sync
 package main
 
 import (
@@ -16,6 +17,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 )
 
 type result struct {
@@ -562,8 +564,11 @@ func TestHookCanonBlurb(t *testing.T) {
 	}
 	canon := filepath.Join(root, "docs", "canon")
 	os.MkdirAll(canon, 0o755)
-	for _, f := range []string{"NEVERS.md", "TRUTHS.md", "OPEN_QUESTIONS.md"} {
-		os.WriteFile(filepath.Join(canon, f), []byte("x"), 0o644)
+	// auto-sync mirrors the md into refs, so the files must agree with the refs set above
+	for f, body := range map[string]string{
+		"NEVERS.md": "## NEV-01 c\n", "TRUTHS.md": "## TRU-01 a\n## TRU-02 b\n", "OPEN_QUESTIONS.md": "x",
+	} {
+		os.WriteFile(filepath.Join(canon, f), []byte(body), 0o644)
 	}
 	got := hookCtx(t, payload)
 	want := base + " Canon in docs/canon/: TRUTHS.md (2 truth), NEVERS.md (1 never), OPEN_QUESTIONS.md (0 open)."
@@ -644,5 +649,189 @@ func TestHookIdsSentence(t *testing.T) {
 	mustOK(t, refs("ids", "fixed"))
 	if got := hookCtx(t, payload); !strings.HasSuffix(got, " Canon IDs are fixed.") {
 		t.Errorf("fixed: %q", got)
+	}
+}
+
+// ---- sync ----
+
+func writeCanon(t *testing.T, root, rel, body string) {
+	t.Helper()
+	p := filepath.Join(root, rel)
+	os.MkdirAll(filepath.Dir(p), 0o755)
+	if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSyncCanon(t *testing.T) {
+	root := sandbox(t)
+	mustOK(t, refs("REQ-02", "stale", "--kind", "requirement")) // set before any canon file exists
+	mustOK(t, refs("REQ-77", "gone from md", "--kind", "requirement"))
+	writeCanon(t, root, "docs/canon/REQUIREMENTS.md", "# Reqs\n\n## REQ-01 Do the thing\nbody\n\n## REQ-02 Old one\nRetired: 2026-01-01 gone\n")
+	writeCanon(t, root, "docs/canon/DECISIONS.md", "## DEC-01 · 2026-05-01 — Use Go\nbody\n")
+	writeCanon(t, root, "docs/canon/OPEN_QUESTIONS.md", "## OQ-01 Is it?\nResolved: 2026-02-02 → DEC-01\n\n## OQ-02 Still open\n")
+	writeCanon(t, root, "docs/canon/TRUTHS.md", "## TRU-01 A truth\n\n## Proposed\n\n### TRU-09 not an entry\n")
+
+	r := mustOK(t, refs("sync"))
+	if !strings.HasPrefix(r.out, "sync: 4 set, 2 removed") {
+		t.Errorf("summary: %q", r.out)
+	}
+	list := mustOK(t, refs()).out
+	for _, want := range []string{"Do the thing  @ docs/canon/REQUIREMENTS.md:3", "Use Go  @ docs/canon/DECISIONS.md:1",
+		"Still open  @ docs/canon/OPEN_QUESTIONS.md:4", "A truth  @ docs/canon/TRUTHS.md:1"} {
+		if !strings.Contains(list, want) {
+			t.Errorf("missing %q in\n%s", want, list)
+		}
+	}
+	for _, bad := range []string{"REQ-02", "REQ-77", "OQ-01", "TRU-09"} {
+		if strings.Contains(list, bad) {
+			t.Errorf("%s should not be listed:\n%s", bad, list)
+		}
+	}
+	if r := mustOK(t, refs("TRU-01")); !strings.Contains(r.out, "[truth]") {
+		t.Errorf("kind: %q", r.out)
+	}
+}
+
+func TestSyncLegacyInvariants(t *testing.T) {
+	root := sandbox(t)
+	writeCanon(t, root, "docs/INVARIANTS.md", "## INV-01 Always valid\n")
+	mustOK(t, refs("sync"))
+	r := mustOK(t, refs("INV-01"))
+	if !strings.Contains(r.out, "[invariant]") || !strings.Contains(r.out, "docs/INVARIANTS.md:1") {
+		t.Errorf("legacy: %q", r.out)
+	}
+	// TRUTHS.md wins over the legacy name once it exists
+	writeCanon(t, root, "docs/canon/TRUTHS.md", "## TRU-01 New\n")
+	mustOK(t, refs("sync"))
+	if r := mustOK(t, refs("TRU-01")); !strings.Contains(r.out, "[truth]") {
+		t.Errorf("TRUTHS.md not preferred: %q", r.out)
+	}
+}
+
+func TestSyncDryRunWritesNothing(t *testing.T) {
+	root := sandbox(t)
+	writeCanon(t, root, "docs/canon/NEVERS.md", "## NEV-01 Never X\n")
+	r := mustOK(t, refs("sync", "--dry-run"))
+	if !strings.Contains(r.out, "would set NEV-01") || !strings.Contains(r.out, "1 set") {
+		t.Errorf("dry output: %q", r.out)
+	}
+	if _, err := os.Stat(filepath.Join(root, ".ai", "refs.json")); err == nil {
+		t.Error("dry-run wrote refs.json")
+	}
+}
+
+func TestSyncSetAtStable(t *testing.T) {
+	root := sandbox(t)
+	writeCanon(t, root, "docs/canon/NEVERS.md", "## NEV-01 Never X\n## NEV-02 Never Y\n")
+	mustOK(t, refs("sync"))
+	first := readStore(t, root)
+	// age set_at so a rewrite would show
+	aged := strings.ReplaceAll(first, `"set_at": "`, `"set_at": "1999-`)
+	os.WriteFile(filepath.Join(root, ".ai", "refs.json"), []byte(aged), 0o644)
+	r := mustOK(t, refs("sync"))
+	if !strings.HasPrefix(r.out, "sync: 0 set, 0 removed, 2 unchanged") {
+		t.Errorf("resync: %q", r.out)
+	}
+	if got := readStore(t, root); got != aged {
+		t.Errorf("refs.json churned:\n%s", got)
+	}
+	// change one: only it gets a fresh set_at
+	writeCanon(t, root, "docs/canon/NEVERS.md", "## NEV-01 Never X\n## NEV-02 Never Z\n")
+	mustOK(t, refs("sync"))
+	got := readStore(t, root)
+	if strings.Count(got, `"set_at": "1999-`) != 1 {
+		t.Errorf("expected one aged set_at left:\n%s", got)
+	}
+}
+
+func TestSyncUsage(t *testing.T) {
+	sandbox(t)
+	if r := refs("sync", "--bogus"); r.code == 0 || !strings.Contains(r.err, "usage: refs sync") {
+		t.Errorf("bogus flag: %+v", r)
+	}
+	if !reserved["sync"] {
+		t.Error("sync is not reserved")
+	}
+}
+
+func TestAutoSync(t *testing.T) {
+	root := sandbox(t)
+	writeCanon(t, root, "docs/canon/NEVERS.md", "## NEV-01 Never X\n")
+	// refs.json missing, canon present: any read command syncs first
+	if r := mustOK(t, refs()); !strings.Contains(r.out, "NEV-01") || r.err != "" {
+		t.Fatalf("missing store: %+v", r)
+	}
+	// md edited but older than refs.json: not re-read
+	writeCanon(t, root, "docs/canon/NEVERS.md", "## NEV-01 Never X\n## NEV-02 Never Y\n")
+	old := time.Now().Add(-time.Hour)
+	os.Chtimes(filepath.Join(root, "docs/canon/NEVERS.md"), old, old)
+	if r := mustOK(t, refs()); strings.Contains(r.out, "NEV-02") {
+		t.Errorf("synced although md is older: %q", r.out)
+	}
+	// md newer than refs.json: re-read, for show too
+	past := time.Now().Add(-2 * time.Hour)
+	store := filepath.Join(root, ".ai", "refs.json")
+	os.Chtimes(store, past, past)
+	os.Chtimes(filepath.Join(root, "docs/canon/NEVERS.md"), past.Add(time.Hour), past.Add(time.Hour))
+	if r := mustOK(t, refs("NEV-02")); !strings.Contains(r.out, "Never Y") {
+		t.Errorf("not synced although md is newer: %q", r.out)
+	}
+	// a sync with no changes still bumps refs.json past the md, so the next call is stat-only
+	os.Chtimes(store, past, past)
+	mustOK(t, refs("NEV-01"))
+	if st, _ := os.Stat(store); !st.ModTime().After(past.Add(time.Hour)) {
+		t.Errorf("refs.json mtime not advanced: %v", st.ModTime())
+	}
+}
+
+func TestAutoSyncNotForSeedOrHelp(t *testing.T) {
+	root := sandbox(t)
+	writeCanon(t, root, "docs/canon/NEVERS.md", "## NEV-01 Never X\n")
+	mustOK(t, refs("seed"))
+	mustOK(t, refs("--help"))
+	if _, err := os.Stat(filepath.Join(root, ".ai", "refs.json")); err == nil {
+		t.Error("seed/help synced")
+	}
+}
+
+func TestHookAutoSyncAndMalformedCanon(t *testing.T) {
+	root := sandbox(t)
+	payload := `{"cwd":"` + root + `"}`
+	writeCanon(t, root, "docs/canon/TRUTHS.md", "## TRU-01 One\n")
+	if got := hookCtx(t, payload); !strings.Contains(got, "This project has 1 ref.") {
+		t.Errorf("hook did not sync: %q", got)
+	}
+	// binary junk, a directory where a file belongs, huge line: still valid JSON, exit 0
+	writeCanon(t, root, "docs/canon/TRUTHS.md", "\xff\xfe## TRU-01\n## TRU-02\x00 \xc3\n"+strings.Repeat("z", 1<<20))
+	future := time.Now().Add(time.Hour)
+	os.Chtimes(filepath.Join(root, "docs/canon/TRUTHS.md"), future, future)
+	os.MkdirAll(filepath.Join(root, "docs/canon/NEVERS.md"), 0o755)
+	hookCtx(t, payload)
+	hookCtx(t, `{"cwd":"`+root+`"}`)
+}
+
+func TestSyncCactusFake(t *testing.T) {
+	root := sandbox(t)
+	writeCanon(t, root, ".ai/cactus/q1-aaa-first.md", "x")
+	writeCanon(t, root, ".ai/cactus/q2-bbb-second.md", "x")
+	writeCanon(t, root, ".ai/cactus/q3-ccc-third.md", "x")
+	bin := t.TempDir()
+	rows := `[{"key":"q1","text":"Pick\none","answer":{"selected":["a","b"],"text":"why"},"pr":null,"thread":"x"},` +
+		`{"key":"q2","text":"Skip","answer":{"skipped":true},"pr":null},` +
+		`{"key":"q3","text":"Denied","answer":{"selected":["a"]},"pr":null,"thread":"denied"}]`
+	os.WriteFile(filepath.Join(bin, "cactus"), []byte("#!/bin/sh\ncat <<'EOF'\n"+rows+"\nEOF\n"), 0o755)
+	t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
+	mustOK(t, refs("q9", "stale", "--kind", "answer"))
+	r := mustOK(t, refs("sync", "--cactus"))
+	if !strings.HasPrefix(r.out, "sync: 1 set, 1 removed") {
+		t.Errorf("summary: %q", r.out)
+	}
+	got := mustOK(t, refs("q1")).out
+	if !strings.Contains(got, "Pick one → a, b — why") || !strings.Contains(got, ".ai/cactus/q1-aaa-first.md:1") {
+		t.Errorf("q1: %q", got)
+	}
+	if strings.Contains(mustOK(t, refs()).out, "q2") {
+		t.Error("skipped answer was mirrored")
 	}
 }

@@ -17,7 +17,7 @@ import (
 	"unicode/utf8"
 )
 
-var reserved = map[string]bool{"rm": true, "kind": true, "kinds": true, "home": true, "seed": true, "hook": true, "ids": true}
+var reserved = map[string]bool{"rm": true, "kind": true, "kinds": true, "home": true, "seed": true, "hook": true, "ids": true, "sync": true}
 
 var linkRE = regexp.MustCompile(`^\[([^\]]+)\]\(([^)\s\p{Z}\x{85}\x{1c}-\x{1f}]+)\)\n?$`)
 
@@ -72,6 +72,9 @@ func (a *app) cmdRefs(argv []string) int {
 	}
 
 	root := projectRoot("")
+	if err := autoSync(root, a.stderr); err != nil {
+		fmt.Fprintln(a.stderr, "refs: canon auto-sync failed: "+err.Error())
+	}
 	store := loadRefs(root)
 	kinds, refs := asObj(store.Get("kinds")), asObj(store.Get("refs"))
 	save := func() {

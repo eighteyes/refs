@@ -66,7 +66,7 @@ Write only what was approved.
 
 ## 5. Re-sync
 
-    ../harvest/bin/sync.sh --github --cactus
+    refs sync --github --cactus
 
 Retired and resolved entries lose their refs; new IDs get theirs. Report the counts per kind before and after.
 

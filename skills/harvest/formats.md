@@ -1,6 +1,6 @@
 # Canon formats
 
-Six files in the repo's `docs/canon/`. Each entry is a `##` heading with a stable ID; `bin/sync.sh` reads the headings.
+Six files in the repo's `docs/canon/`. Each entry is a `##` heading with a stable ID; `refs sync` reads the headings.
 
 	file	ID	holds
 	docs/canon/TRUTHS.md	TRU-NN	predicates that hold before and after every change (broader)
@@ -72,7 +72,7 @@ A closed open question keeps its block and gains `Resolved: <date> → <DEC-NN |
 - Unconfirmed candidates live under `## Proposed` at the end of the file, without IDs.
 - A decision too big for its entry also gets `docs/canon/adrs/DEC-07-<slug>.md` (full context, options weighed, consequences). The entry stays the summary and names it under Anchors: `Long form: adrs/DEC-07-<slug>.md`. refs points at the entry, not the long form.
 - Legacy: `INVARIANTS.md` with `INV-NN` IDs is the old name for truths; read it when `TRUTHS.md` is missing and keep its IDs.
-- Legacy layout: files at `docs/<NAME>.md` (before `docs/canon/`). Read them when `docs/canon/` has none; `sync.sh` does the same.
+- Legacy layout: files at `docs/<NAME>.md` (before `docs/canon/`). Read them when `docs/canon/` has none; `refs sync` does the same.
 
 ## New file header
 

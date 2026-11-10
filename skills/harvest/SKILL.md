@@ -55,8 +55,8 @@ Show the Proposed list (a cactus ask when cactus is installed, else in chat): ea
 
 ## 6. Mirror into refs
 
-    bin/sync.sh --github --cactus
+    refs sync --github --cactus
 
-One ref per live entry (`REQ-04`, `TRU-03`, `NEV-02`, `DEC-07`, `INQ-01`, `OQ-05`) with its home at the heading line, one per open issue (`issue#12`) and PR (`pr#40`), one per qualifying cactus answer (`q19`, home at the record). Retired entries, resolved open questions, closed issues and answers that stop qualifying lose their refs. Re-run it after any edit to the six files; it is idempotent. `--dry-run` prints the calls.
+One ref per live entry (`REQ-04`, `TRU-03`, `NEV-02`, `DEC-07`, `INQ-01`, `OQ-05`) with its home at the heading line, one per open issue (`issue#12`) and PR (`pr#40`), one per qualifying cactus answer (`q19`, home at the record). Retired entries, resolved open questions, closed issues and answers that stop qualifying lose their refs. Re-run it after any edit to the six files; it is idempotent. `--dry-run` prints the changes. The canon part also runs by itself whenever a canon file is newer than `.ai/refs.json`.
 
 Leave committing the six files to the human or the session's commit flow.
