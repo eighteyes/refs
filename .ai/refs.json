@@ -84,152 +84,232 @@
     "REQ-01": {
       "kind": "requirement",
       "value": "Set or overwrite a ref with `refs KEY VALUE`",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/REQUIREMENTS.md:4"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/REQUIREMENTS.md:4",
+      "applies": [
+        "cmd.go"
+      ]
     },
     "REQ-02": {
       "kind": "requirement",
       "value": "An unknown key prefix saves as kind `unknown` and warns",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/REQUIREMENTS.md:12"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/REQUIREMENTS.md:12",
+      "applies": [
+        "cmd.go"
+      ]
     },
     "REQ-03": {
       "kind": "requirement",
       "value": "The SessionStart hook seeds an empty project, else reminds",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/REQUIREMENTS.md:20"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/REQUIREMENTS.md:20",
+      "applies": [
+        "hook.go"
+      ]
     },
     "REQ-04": {
       "kind": "requirement",
       "value": "Setting a value without `--home` keeps the existing home",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/REQUIREMENTS.md:28"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/REQUIREMENTS.md:28",
+      "applies": [
+        "cmd.go"
+      ]
     },
     "REQ-05": {
       "kind": "requirement",
       "value": "`refs seed` prints how to populate an empty project",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/REQUIREMENTS.md:35"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/REQUIREMENTS.md:35",
+      "applies": [
+        "main.go"
+      ]
     },
     "REQ-06": {
       "kind": "requirement",
-      "value": "sync.sh mirrors live canon, open GitHub work and qualifying cactus answers into refs",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/REQUIREMENTS.md:43"
+      "value": "`refs sync` mirrors live canon, open GitHub work and qualifying cactus answers into refs",
+      "set_at": "2026-11-10T09:09:57-0800",
+      "home": "docs/canon/REQUIREMENTS.md:43",
+      "applies": [
+        "skills/harvest/**"
+      ]
     },
     "TRU-01": {
       "kind": "truth",
       "value": "`refs hook` always exits 0 and prints valid hook JSON",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/TRUTHS.md:4"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/TRUTHS.md:4",
+      "applies": [
+        "hook.go",
+        "bin/refs"
+      ]
     },
     "TRU-02": {
       "kind": "truth",
       "value": "Writes to refs.json are atomic",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/TRUTHS.md:10"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/TRUTHS.md:10",
+      "applies": [
+        "store.go"
+      ]
     },
     "TRU-03": {
       "kind": "truth",
       "value": "Key order in refs.json is insertion order; a set replaces in place",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/TRUTHS.md:16"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/TRUTHS.md:16",
+      "applies": [
+        "store.go",
+        "cmd.go"
+      ]
     },
     "TRU-04": {
       "kind": "truth",
       "value": "A stored home is root-relative and inside the project",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/TRUTHS.md:22"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/TRUTHS.md:22",
+      "applies": [
+        "store.go"
+      ]
     },
     "TRU-05": {
       "kind": "truth",
       "value": "Reserved words (rm kind kinds home seed hook) are never keys",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/TRUTHS.md:28"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/TRUTHS.md:28",
+      "applies": [
+        "cmd.go",
+        "main.go"
+      ]
     },
     "TRU-06": {
       "kind": "truth",
       "value": "A key never starts with a digit or `-`",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/TRUTHS.md:34"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/TRUTHS.md:34",
+      "applies": [
+        "cmd.go"
+      ]
     },
     "TRU-07": {
       "kind": "truth",
       "value": "A rejected set never writes refs.json",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/TRUTHS.md:40"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/TRUTHS.md:40",
+      "applies": [
+        "cmd.go",
+        "store.go"
+      ]
     },
     "TRU-08": {
       "kind": "truth",
       "value": "A missing or malformed refs.json loads as an empty store",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/TRUTHS.md:46"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/TRUTHS.md:46",
+      "applies": [
+        "store.go"
+      ]
     },
     "TRU-09": {
       "kind": "truth",
       "value": "refs.json output is ASCII-escaped",
-      "set_at": "2026-11-09T11:14:53-0800",
-      "home": "docs/canon/TRUTHS.md:52"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/TRUTHS.md:52",
+      "applies": [
+        "store.go"
+      ]
     },
     "TRU-10": {
       "kind": "truth",
       "value": "The project root is the git toplevel of cwd, else cwd",
-      "set_at": "2026-11-09T11:14:54-0800",
-      "home": "docs/canon/TRUTHS.md:58"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/TRUTHS.md:58",
+      "applies": [
+        "store.go"
+      ]
     },
     "TRU-11": {
       "kind": "truth",
       "value": "The bin/refs launcher writes build output to stderr only",
-      "set_at": "2026-11-09T11:14:54-0800",
-      "home": "docs/canon/TRUTHS.md:64"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/TRUTHS.md:64",
+      "applies": [
+        "bin/refs"
+      ]
     },
     "TRU-12": {
       "kind": "truth",
       "value": "Canon IDs never change and are never reused",
-      "set_at": "2026-11-09T11:14:54-0800",
-      "home": "docs/canon/TRUTHS.md:70"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/TRUTHS.md:70",
+      "applies": [
+        "docs/canon/*.md"
+      ]
     },
     "TRU-13": {
       "kind": "truth",
-      "value": "sync.sh is idempotent and drops refs whose source is gone or retired",
-      "set_at": "2026-11-09T11:14:54-0800",
-      "home": "docs/canon/TRUTHS.md:76"
+      "value": "`refs sync` is idempotent and drops refs whose source is gone or retired",
+      "set_at": "2026-11-10T09:09:51-0800",
+      "home": "docs/canon/TRUTHS.md:76",
+      "applies": [
+        "sync.go"
+      ]
     },
     "TRU-14": {
       "kind": "truth",
-      "value": "sync.sh --cactus never mirrors a skipped answer, a pr-tagged row or a denied-thread row",
-      "set_at": "2026-11-09T11:14:54-0800",
-      "home": "docs/canon/TRUTHS.md:82"
+      "value": "`refs sync --cactus` never mirrors a skipped answer, a pr-tagged row or a denied-thread row",
+      "set_at": "2026-11-10T09:09:51-0800",
+      "home": "docs/canon/TRUTHS.md:82",
+      "applies": [
+        "sync.go"
+      ]
     },
     "NEV-01": {
       "kind": "never",
       "value": "A third-party module in the Go program",
-      "set_at": "2026-11-09T11:14:54-0800",
-      "home": "docs/canon/NEVERS.md:4"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/NEVERS.md:4",
+      "applies": [
+        "go.mod",
+        "*.go"
+      ]
     },
     "NEV-02": {
       "kind": "never",
       "value": "A new subcommand left out of `reserved`",
-      "set_at": "2026-11-09T11:14:54-0800",
-      "home": "docs/canon/NEVERS.md:10"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/NEVERS.md:10",
+      "applies": [
+        "cmd.go"
+      ]
     },
     "NEV-03": {
       "kind": "never",
       "value": "Rewriting an existing canon entry in place",
-      "set_at": "2026-11-09T11:14:54-0800",
-      "home": "docs/canon/NEVERS.md:16"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/NEVERS.md:16",
+      "applies": [
+        "docs/canon/*.md"
+      ]
     },
     "NEV-04": {
       "kind": "never",
       "value": "Promoting a Proposed candidate without the human's answer",
-      "set_at": "2026-11-09T11:14:54-0800",
-      "home": "docs/canon/NEVERS.md:22"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/NEVERS.md:22",
+      "applies": [
+        "docs/canon/*.md"
+      ]
     },
     "NEV-05": {
       "kind": "never",
       "value": "A generic best-practice warning recorded as a never",
-      "set_at": "2026-11-09T11:14:54-0800",
-      "home": "docs/canon/NEVERS.md:28"
+      "set_at": "2026-11-10T09:08:47-0800",
+      "home": "docs/canon/NEVERS.md:28",
+      "applies": [
+        "docs/canon/NEVERS.md"
+      ]
     },
     "DEC-01": {
       "kind": "decision",

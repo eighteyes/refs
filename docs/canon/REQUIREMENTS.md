@@ -26,7 +26,7 @@ Applies to: hook.go
 Source: README.md:60
 
 ## REQ-04 Setting a value without `--home` keeps the existing home
-Why: a re-run of sync.sh or a manual set must not drop the source-of-truth link.
+Why: a re-run of `refs sync` or a manual set must not drop the source-of-truth link.
 Acceptance:
 - Set a ref with `--home`, set it again without; `refs KEY` still shows the home. Check with TestHome.
 Applies to: cmd.go
@@ -40,10 +40,10 @@ Acceptance:
 Applies to: main.go
 Source: main.go:32
 
-## REQ-06 sync.sh mirrors live canon, open GitHub work and qualifying cactus answers into refs
+## REQ-06 `refs sync` mirrors live canon, open GitHub work and qualifying cactus answers into refs
 Why: sessions recall canon by ID and read its source line before trusting it.
 Acceptance:
-- `sync.sh --github --cactus --dry-run` prints one call per live entry, open issue, open PR and qualifying cactus answer; check by running it.
+- `refs sync --github --cactus --dry-run` prints one change per live entry, open issue, open PR and qualifying cactus answer; check by running it.
 - Each canon ref's home is its heading line; each answer's home is its record, line 1.
 Applies to: skills/harvest/**
 Source: skills/harvest/SKILL.md:54

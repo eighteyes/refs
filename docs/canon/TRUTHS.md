@@ -73,14 +73,14 @@ Applies to: docs/canon/*.md
 Check: review
 Source: skills/harvest/formats.md:47
 
-## TRU-13 sync.sh is idempotent and drops refs whose source is gone or retired
+## TRU-13 `refs sync` is idempotent and drops refs whose source is gone or retired
 Why: harvest is re-run often; drift or stale refs mislead every session.
-Applies to: skills/harvest/bin/sync.sh
-Check: review (run sync.sh twice and cmp .ai/refs.json; retire an entry and its ref goes)
-Source: skills/harvest/SKILL.md:54, skills/harvest/bin/sync.sh:6
+Applies to: sync.go
+Check: go test -run Sync ./...
+Source: skills/harvest/SKILL.md:54, sync.go:1
 
-## TRU-14 sync.sh --cactus never mirrors a skipped answer, a pr-tagged row or a denied-thread row
+## TRU-14 `refs sync --cactus` never mirrors a skipped answer, a pr-tagged row or a denied-thread row
 Why: those rows are process or blocked commands, not decisions.
-Applies to: skills/harvest/bin/sync.sh
-Check: review (`sync.sh --cactus --dry-run` shows none of them)
-Source: skills/harvest/bin/sync.sh:8
+Applies to: sync.go
+Check: go test -run Cactus ./...
+Source: sync.go:1
