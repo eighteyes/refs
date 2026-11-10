@@ -21,7 +21,7 @@ touched: .claude-plugin/marketplace.json, CLAUDE.md, README.md, bin/refs
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/.claude-plugin/marketplace.json
+- .claude-plugin/marketplace.json
 
 ## Options
 

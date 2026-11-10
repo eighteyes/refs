@@ -21,7 +21,7 @@ touched: main.go, hook.go, cmd.go, skills/tighten/SKILL.md
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/skills/harvest/formats.md
+- skills/harvest/formats.md
 
 ## Options
 

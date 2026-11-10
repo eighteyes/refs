@@ -1,4 +1,4 @@
-# q30 — cd /Users/god/projects/ai-tooling/utils/refs/.ai/cactus && for f in q22-*.md q23-*.md q25-*.md q26-*.md q27-*.md q28-*.md; do echo "=== $f"; rtk read "$f"; echo; done
+# q30 — cd .ai/cactus && for f in q22-*.md q23-*.md q25-*.md q26-*.md q27-*.md q28-*.md; do echo "=== $f"; rtk read "$f"; echo; done
 
 status: answered
 act: run
@@ -54,7 +54,7 @@ asked at: 2026-11-08T07:20:37.626844+00:00
 
 **Default if unanswered: both.**
 
-- cactus-pane lives at /Users/god/projects/cactus/mods/cactus-pane (README, register.tsx, tests, types)
+- cactus-pane lives at ~/projects/cactus/mods/cactus-pane (README, register.tsx, tests, types)
 - /refs-pane is the slash command that opens it
 
 ## Options

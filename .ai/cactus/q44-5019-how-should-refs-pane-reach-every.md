@@ -20,8 +20,8 @@ touched: main.go, hook.go, cmd.go, skills/tighten/SKILL.md
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/.claude-plugin/marketplace.json
-- /Users/god/projects/ai-tooling/utils/refs/mods/refs-pane/.claude-plugin/plugin.json
+- .claude-plugin/marketplace.json
+- mods/refs-pane/.claude-plugin/plugin.json
 
 ## Options
 

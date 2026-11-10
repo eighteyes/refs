@@ -15,9 +15,9 @@ touched: CLAUDE.md, README.md, bin/refs
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/bin/refs
-- /Users/god/projects/ai-tooling/utils/refs/store.go
-- /Users/god/projects/ai-tooling/utils/refs/README.md
+- bin/refs
+- store.go
+- README.md
 
 ## Options
 

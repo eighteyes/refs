@@ -20,7 +20,7 @@ touched: hook.go, refs_test.go, skills/harvest/bin/sync.sh, bin/refs
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/docs/canon/DECISIONS.md
+- docs/canon/DECISIONS.md
 
 ## Options
 

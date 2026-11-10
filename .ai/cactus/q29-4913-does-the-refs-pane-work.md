@@ -15,7 +15,7 @@ touched: skills/harvest/SKILL.md, skills/harvest/bin/sync.sh, .claude-plugin/mar
 
 ## Files
 
-- /Users/god/.claude/dev-mods/72f7858d-f45b-4670-a659-3b5441573403/refs-pane/hooks/register.tsx
+- ~/.claude/dev-mods/72f7858d-f45b-4670-a659-3b5441573403/refs-pane/hooks/register.tsx
 
 ## Options
 

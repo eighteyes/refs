@@ -20,8 +20,8 @@ touched: main.go, hook.go, cmd.go, skills/tighten/SKILL.md
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/docs/canon/INQUIRY.md
-- /Users/god/projects/ai-tooling/utils/refs/docs/canon/OPEN_QUESTIONS.md
+- docs/canon/INQUIRY.md
+- docs/canon/OPEN_QUESTIONS.md
 
 ## Options
 

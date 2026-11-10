@@ -12,7 +12,7 @@ asked at: 2026-11-08T07:20:37.626844+00:00
 
 **Default if unanswered: both.**
 
-- cactus-pane lives at /Users/god/projects/cactus/mods/cactus-pane (README, register.tsx, tests, types)
+- cactus-pane lives at ~/projects/cactus/mods/cactus-pane (README, register.tsx, tests, types)
 - /refs-pane is the slash command that opens it
 
 ## Options

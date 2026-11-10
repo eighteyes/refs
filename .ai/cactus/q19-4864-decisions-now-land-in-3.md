@@ -25,7 +25,7 @@ touched: .claude-plugin/marketplace.json, CLAUDE.md, README.md, bin/refs
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/skills/harvest/SKILL.md
+- skills/harvest/SKILL.md
 
 ## Options
 

@@ -1,4 +1,4 @@
-# q14 — cactus ask --no-wait "Merge branch seed into main (fast-forward, local) and re-run go install?" --confirm -t seed --agent 72f7858d-f45b-4670-a659-3b5441573403 --recommend yes --confidence high --context $'**Default if unanswered: leave it on seed.**\n\n- 2 commits: f5ec2ca, b886a30\n- 22 tests pass; I checked seed, seed x, and install as a key by hand\n- go install updates /Users/god/gocode/bin/refs'
+# q14 — cactus ask --no-wait "Merge branch seed into main (fast-forward, local) and re-run go install?" --confirm -t seed --agent 72f7858d-f45b-4670-a659-3b5441573403 --recommend yes --confidence high --context $'**Default if unanswered: leave it on seed.**\n\n- 2 commits: f5ec2ca, b886a30\n- 22 tests pass; I checked seed, seed x, and install as a key by hand\n- go install updates $GOPATH/bin/refs'
 
 status: answered
 act: run

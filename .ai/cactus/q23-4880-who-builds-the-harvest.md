@@ -18,7 +18,7 @@ asked at: 2026-11-08T06:44:16.843640+00:00
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/skills/harvest/SKILL.md
+- skills/harvest/SKILL.md
 
 ## Options
 

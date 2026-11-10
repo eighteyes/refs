@@ -19,7 +19,7 @@ asked at: 2026-11-07T05:56:32.304948+00:00
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/hooks/hooks.json
+- hooks/hooks.json
 
 ## Options
 

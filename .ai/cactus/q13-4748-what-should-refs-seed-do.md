@@ -21,9 +21,9 @@ touched: CLAUDE.md, README.md, bin/refs
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/cmd.go
-- /Users/god/projects/ai-tooling/utils/refs/hook.go
-- /Users/god/projects/ai-tooling/utils/refs/main.go
+- cmd.go
+- hook.go
+- main.go
 
 ## Options
 

@@ -21,7 +21,7 @@ touched: skills/harvest/SKILL.md, skills/harvest/bin/sync.sh, .claude-plugin/mar
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/skills/harvest/bin/sync.sh
+- skills/harvest/bin/sync.sh
 
 ## Options
 

@@ -21,7 +21,7 @@ touched: .claude-plugin/marketplace.json, CLAUDE.md, README.md, bin/refs
 
 ## Files
 
-- /Users/god/projects/cactus/src/cactus/record.py
+- ~/projects/cactus/src/cactus/record.py
 
 ## Options
 

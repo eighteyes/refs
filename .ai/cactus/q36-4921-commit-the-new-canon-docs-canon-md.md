@@ -17,10 +17,10 @@ asked at: 2026-11-08T07:39:54.538071+00:00
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/docs/canon/REQUIREMENTS.md
-- /Users/god/projects/ai-tooling/utils/refs/docs/canon/TRUTHS.md
-- /Users/god/projects/ai-tooling/utils/refs/docs/canon/NEVERS.md
-- /Users/god/projects/ai-tooling/utils/refs/docs/canon/DECISIONS.md
+- docs/canon/REQUIREMENTS.md
+- docs/canon/TRUTHS.md
+- docs/canon/NEVERS.md
+- docs/canon/DECISIONS.md
 
 ## Options
 

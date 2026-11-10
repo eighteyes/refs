@@ -14,7 +14,7 @@ asked at: 2026-11-07T06:49:25.903091+00:00
 
 - 2 commits: f5ec2ca, b886a30
 - 22 tests pass; I checked seed, seed x, and install as a key by hand
-- go install updates /Users/god/gocode/bin/refs
+- go install updates $GOPATH/bin/refs
 
 — slugs —
 touched: CLAUDE.md, README.md, bin/refs

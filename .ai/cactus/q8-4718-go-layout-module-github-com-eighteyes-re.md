@@ -21,7 +21,7 @@ touched: CLAUDE.md
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/hooks/hooks.json
+- hooks/hooks.json
 
 ## Options
 

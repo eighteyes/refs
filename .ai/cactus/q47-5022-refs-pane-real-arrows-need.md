@@ -21,7 +21,7 @@ touched: main.go, hook.go, cmd.go, skills/tighten/SKILL.md
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/mods/refs-pane/hooks/register.tsx
+- mods/refs-pane/hooks/register.tsx
 
 ## Options
 
