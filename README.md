@@ -53,7 +53,7 @@ R1  [requirement]
 ```
 
 - **`prefix 'D' has no kind`**: the key's prefix (`D` in `D1`) has no name yet. The ref saves as `unknown`. Run `refs kind D decision`; it relabels the existing `unknown` refs too.
-- **Keys can't start with a digit or `-`**, and `rm kind kinds home seed hook ids sync` are reserved.
+- **Keys can't start with a digit or `-`**, and `rm kind kinds home seed hook ids sync guard` are reserved.
 - **Read the home before trusting the value.** The value is a note; the home is the source.
 
 ## For AI agents
@@ -61,7 +61,9 @@ R1  [requirement]
 `refs --help` is written for a model: when to run it, every command, and the rules for keys and homes. The SessionStart hook runs on `startup|resume|clear|compact`:
 
 - **No `.ai/refs.json` yet**: it tells the agent to populate refs first, with `/refs:harvest` or by hand. `refs seed` prints the same text.
-- **Otherwise**: one line on how to use refs, the ref count, the canon files present with a count per kind, how to look one up, and whether canon IDs are fixed or fluid. It also tells the agent to cite refs on cactus questions with `--refs KEY` instead of restating them.
+- **Otherwise**: one line on how to use refs, the ref count, the canon files present with a count per kind, how to look one up, and whether canon IDs are fixed or fluid. It ends with a Guards list: one line per truth and never (first 40, then a count). It also tells the agent to cite refs on cactus questions with `--refs KEY` instead of restating them.
+
+**Guards on edit.** A canon block may carry an `Applies to: <glob>, <glob>` line (`all` covers every file). `refs sync` stores it as the ref's `applies` list. The plugin also registers a PreToolUse hook (`Edit|Write|MultiEdit|NotebookEdit`) that runs `refs guard`: it prints the truths and nevers whose globs cover the file, with their homes, as extra context. It never allows or blocks. Files outside the project and under `.ai/` are skipped.
 
 ## Canon
 
@@ -99,6 +101,7 @@ Six files in `docs/canon/`. Each entry is a `##` heading with an ID; refs points
 | `refs ids [fixed\|fluid]` | show or set whether canon IDs may change |
 | `refs sync [--github] [--cactus] [--dry-run]` | mirror `docs/canon/*.md` (and open issues/PRs, answered cactus rows) into refs |
 | `refs seed` | print how to populate an empty project |
+| `refs guard` | the PreToolUse hook: JSON payload on stdin, lists the truths and nevers whose `Applies to:` globs cover the file; advice only, never blocks |
 | `refs hook` | the SessionStart hook: JSON payload on stdin, hook JSON out |
 
 **Store.** `<root>/.ai/refs.json`, shape `{"kinds": {}, "refs": {}}`, plus `"ids"` once set. Root is the git toplevel of the current directory, else the directory. Writes are atomic. Key order is insertion order, and unknown fields survive.

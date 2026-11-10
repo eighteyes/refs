@@ -1,5 +1,5 @@
 {
-  "description": "SessionStart hook that tells the agent this project keeps refs.",
+  "description": "SessionStart hook that tells the agent this project keeps refs; PreToolUse hook that lists the guards covering a file before it is edited.",
   "hooks": {
     "SessionStart": [
       {
@@ -8,6 +8,17 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/bin/refs hook"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/refs guard"
           }
         ]
       }

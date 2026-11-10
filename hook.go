@@ -4,6 +4,7 @@
 //   - read the hook payload JSON from stdin and take `cwd`
 //   - print hookSpecificOutput.additionalContext: seed text for an empty project, else a standing line + ref count + canon blurb (canon files present, counts by kind) + the ids mode sentence
 //   - auto-sync the canon first when a canon file is newer than refs.json
+//   - end with a Guards list: one line per truth and never, capped
 //   - never fail: garbage input or errors still yield valid JSON and exit 0
 package main
 
@@ -47,6 +48,33 @@ func hookContext(cwd string) string {
 		} else {
 			s += " Canon IDs are fluid and may be renumbered; cite an ID with its title."
 		}
+	}
+	return s + guardsLine(all)
+}
+
+const maxGuards = 40
+
+// guardsLine lists live truths and nevers, truths first, capped at maxGuards. Empty when there are none.
+func guardsLine(refs *omap) string {
+	var lines []string
+	for _, kind := range []string{"truth", "never"} {
+		for _, k := range refs.keys {
+			r := asObj(refs.Get(k))
+			if pystr(r.Get("kind")) == kind {
+				lines = append(lines, k+" "+pystr(r.Get("value")))
+			}
+		}
+	}
+	if len(lines) == 0 {
+		return ""
+	}
+	s := "\nGuards (read the home before changing what they cover):"
+	for i, l := range lines {
+		if i == maxGuards {
+			s += "\n+" + itoa(len(lines)-maxGuards) + " more: refs --kind truth / never"
+			break
+		}
+		s += "\n" + l
 	}
 	return s
 }

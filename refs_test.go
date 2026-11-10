@@ -559,7 +559,8 @@ func TestHookCanonBlurb(t *testing.T) {
 	mustOK(t, refs("NEV-01", "c", "--kind", "never"))
 	payload := `{"cwd":"` + root + `"}`
 	base := hookText + " This project has 3 refs."
-	if got := hookCtx(t, payload); got != base {
+	guards := "\nGuards (read the home before changing what they cover):\nTRU-01 a\nTRU-02 b\nNEV-01 c"
+	if got := hookCtx(t, payload); got != base+guards {
 		t.Errorf("no canon: %q", got)
 	}
 	canon := filepath.Join(root, "docs", "canon")
@@ -833,5 +834,169 @@ func TestSyncCactusFake(t *testing.T) {
 	}
 	if strings.Contains(mustOK(t, refs()).out, "q2") {
 		t.Error("skipped answer was mirrored")
+	}
+}
+
+// ---- applies, guards ----
+
+func TestSyncAppliesStoredAndChanged(t *testing.T) {
+	root := sandbox(t)
+	writeCanon(t, root, "docs/canon/NEVERS.md", "## NEV-01 No X\nApplies to: go.mod, `*.go`\n\n## NEV-02 No Y\nApplies to: all\n\n## NEV-03 No Z\n")
+	mustOK(t, refs("sync"))
+	got := readStore(t, root)
+	if !strings.Contains(got, `"applies": [
+        "go.mod",
+        "*.go"
+      ]`) || !strings.Contains(got, `"all"`) {
+		t.Errorf("applies not stored:\n%s", got)
+	}
+	if strings.Count(got, `"applies"`) != 2 {
+		t.Errorf("NEV-03 should have no applies:\n%s", got)
+	}
+	// unknown entry field survives; applies change bumps set_at
+	aged := strings.ReplaceAll(got, `"set_at": "`, `"set_at": "1999-`)
+	aged = strings.Replace(aged, `"kind": "never",`, `"kind": "never", "extra": 1,`, 1)
+	os.WriteFile(filepath.Join(root, ".ai", "refs.json"), []byte(aged), 0o644)
+	r := mustOK(t, refs("sync"))
+	if !strings.HasPrefix(r.out, "sync: 0 set") {
+		t.Errorf("resync: %q", r.out)
+	}
+	writeCanon(t, root, "docs/canon/NEVERS.md", "## NEV-01 No X\nApplies to: *.go\n\n## NEV-02 No Y\nApplies to: all\n\n## NEV-03 No Z\n")
+	r = mustOK(t, refs("sync"))
+	if !strings.HasPrefix(r.out, "sync: 1 set") {
+		t.Errorf("applies change: %q", r.out)
+	}
+	got = readStore(t, root)
+	if strings.Count(got, `"set_at": "1999-`) != 2 || !strings.Contains(got, `"extra": 1`) {
+		t.Errorf("set_at/unknown field:\n%s", got)
+	}
+}
+
+func TestHookGuardsLine(t *testing.T) {
+	root := sandbox(t)
+	payload := `{"cwd":"` + root + `"}`
+	mustOK(t, refs("R1", "req", "--kind", "requirement"))
+	if got := hookCtx(t, payload); strings.Contains(got, "Guards") {
+		t.Errorf("guards without truths: %q", got)
+	}
+	mustOK(t, refs("TRU-01", "t one", "--kind", "truth"))
+	mustOK(t, refs("NEV-01", "n one", "--kind", "never"))
+	got := hookCtx(t, payload)
+	if !strings.HasSuffix(got, "\nGuards (read the home before changing what they cover):\nTRU-01 t one\nNEV-01 n one") {
+		t.Errorf("guards: %q", got)
+	}
+	for i := 2; i <= 45; i++ {
+		mustOK(t, refs("TRU-"+itoa(100+i), "t", "--kind", "truth"))
+	}
+	got = hookCtx(t, payload)
+	// 45 truths + 1 never = 46 guards, 40 listed
+	if strings.Count(got, "\nTRU-") != 40 || strings.Contains(got, "NEV-01 n one") || !strings.HasSuffix(got, "\n+6 more: refs --kind truth / never") {
+		t.Errorf("cap: %q", got)
+	}
+}
+
+func guardOut(t *testing.T, stdin string) string {
+	t.Helper()
+	r := mustOK(t, refsIn(stdin, "guard"))
+	if strings.Contains(r.out, "permissionDecision") {
+		t.Errorf("permissionDecision in output: %q", r.out)
+	}
+	if r.out != "" {
+		var h struct {
+			H struct {
+				Event string `json:"hookEventName"`
+				Ctx   string `json:"additionalContext"`
+			} `json:"hookSpecificOutput"`
+		}
+		if err := json.Unmarshal([]byte(r.out), &h); err != nil || h.H.Event != "PreToolUse" {
+			t.Fatalf("bad guard JSON: %q", r.out)
+		}
+		return h.H.Ctx
+	}
+	return ""
+}
+
+func TestGuard(t *testing.T) {
+	root := sandbox(t)
+	writeCanon(t, root, "docs/canon/TRUTHS.md", "## TRU-01 Store is JSON\nApplies to: store.go, internal/**\n\n## TRU-02 Everywhere\nApplies to: all\n")
+	writeCanon(t, root, "docs/canon/NEVERS.md", "## NEV-01 No deps\nApplies to: *.go\n\n## NEV-02 Docs\nApplies to: docs/canon/*.md\n")
+	call := func(file string) string {
+		return guardOut(t, `{"cwd":"`+root+`","tool_name":"Edit","tool_input":{"file_path":"`+file+`"}}`)
+	}
+	// match: exact path, basename glob (*.go on a nested file), all
+	got := call(filepath.Join(root, "store.go"))
+	for _, w := range []string{"refs guards for store.go: ", "TRU-01 Store is JSON @ docs/canon/TRUTHS.md:1", "TRU-02 Everywhere", "NEV-01 No deps @ docs/canon/NEVERS.md:1"} {
+		if !strings.Contains(got, w) {
+			t.Errorf("missing %q in %q", w, got)
+		}
+	}
+	if strings.Contains(got, "NEV-02") {
+		t.Errorf("NEV-02 should not match store.go: %q", got)
+	}
+	got = call(filepath.Join(root, "pkg", "deep", "x.go"))
+	if !strings.Contains(got, "NEV-01") || strings.Contains(got, "TRU-01") || !strings.Contains(got, "TRU-02") {
+		t.Errorf("basename glob: %q", got)
+	}
+	// ** prefix and directory form
+	if got = call(filepath.Join(root, "internal", "a", "b.txt")); !strings.Contains(got, "TRU-01") {
+		t.Errorf("internal/**: %q", got)
+	}
+	if got = call(filepath.Join(root, "docs", "canon", "NEVERS.md")); !strings.Contains(got, "NEV-02") {
+		t.Errorf("docs/canon/*.md: %q", got)
+	}
+	// no match: only `all` truth would match, so drop it
+	writeCanon(t, root, "docs/canon/TRUTHS.md", "## TRU-01 Store is JSON\nApplies to: store.go\n")
+	future := time.Now().Add(time.Minute)
+	os.Chtimes(filepath.Join(root, "docs/canon/TRUTHS.md"), future, future)
+	if got = call(filepath.Join(root, "README.md")); got != "" {
+		t.Errorf("no match should be empty: %q", got)
+	}
+	// outside root, .ai skipped, relative path, notebook_path
+	if got = call("/etc/hosts"); got != "" {
+		t.Errorf("outside root: %q", got)
+	}
+	if got = call(filepath.Join(root, ".ai", "refs.json")); got != "" {
+		t.Errorf(".ai: %q", got)
+	}
+	if got = call("store.go"); !strings.Contains(got, "TRU-01") {
+		t.Errorf("relative path: %q", got)
+	}
+	nb := guardOut(t, `{"cwd":"`+root+`","tool_input":{"notebook_path":"`+filepath.Join(root, "store.go")+`"}}`)
+	if !strings.Contains(nb, "TRU-01") {
+		t.Errorf("notebook_path: %q", nb)
+	}
+	// malformed stdin: empty output, exit 0
+	for _, in := range []string{"", "garbage", "null", "[1]", `{"cwd":5}`, `{"tool_input":5}`, `{"cwd":`} {
+		if r := mustOK(t, refsIn(in, "guard")); r.out != "" {
+			t.Errorf("%q: %q", in, r.out)
+		}
+	}
+	if !reserved["guard"] {
+		t.Error("guard is not reserved")
+	}
+}
+
+func TestHooksJSONRegistersGuard(t *testing.T) {
+	b, err := os.ReadFile("hooks/hooks.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var h struct {
+		Hooks map[string][]struct {
+			Matcher string `json:"matcher"`
+			Hooks   []struct {
+				Command string `json:"command"`
+			} `json:"hooks"`
+		} `json:"hooks"`
+	}
+	if err := json.Unmarshal(b, &h); err != nil {
+		t.Fatal(err)
+	}
+	g := h.Hooks["PreToolUse"]
+	if len(g) != 1 || g[0].Matcher != "Edit|Write|MultiEdit|NotebookEdit" || g[0].Hooks[0].Command != "${CLAUDE_PLUGIN_ROOT}/bin/refs guard" {
+		t.Errorf("PreToolUse: %+v", g)
+	}
+	if len(h.Hooks["SessionStart"]) != 1 {
+		t.Error("SessionStart entry lost")
 	}
 }

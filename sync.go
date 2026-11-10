@@ -2,6 +2,7 @@
 //
 // Responsibilities:
 //   - parse `## <PREFIX>NN text` headings of the six canon files into refs (home = file:line)
+//   - read each block's `Applies to:` globs into an `applies` list
 //   - drop refs for entries marked Retired/Superseded/Resolved and refs whose entry is gone
 //   - --github: open issues and PRs via `gh`; --cactus: answered cactus rows via `cactus get --json`
 //   - apply all changes in-process against one loaded store and save once, atomically
@@ -66,6 +67,7 @@ func (c canonSpec) resolve(root string) (rel, prefix, kind string, ok bool) {
 }
 
 var (
+	appliesRE  = regexp.MustCompile(`^(?:- )?\**Applies to\**:\**\s*(.*)$`)
 	retiredRE  = regexp.MustCompile(`^(Retired:|- \*\*Retired|Superseded by|Resolved:)`)
 	decTitleRE = regexp.MustCompile(`^[^—]*— `)
 )
@@ -76,6 +78,18 @@ type canonEntry struct {
 	id      string
 	text    string
 	retired bool
+	applies []string
+}
+
+// parseApplies splits an `Applies to:` value into globs; backticks and blanks drop out.
+func parseApplies(v string) []string {
+	var out []string
+	for _, g := range strings.Split(v, ",") {
+		if g = strings.TrimSpace(strings.Trim(strings.TrimSpace(g), "`")); g != "" {
+			out = append(out, g)
+		}
+	}
+	return out
 }
 
 // parseCanon reads headings that start with prefix+digits; a block runs to the next `## ` heading.
@@ -104,8 +118,14 @@ func parseCanon(content, prefix string) []canonEntry {
 			}
 			continue
 		}
-		if cur != nil && retiredRE.MatchString(ln) {
+		if cur == nil {
+			continue
+		}
+		if retiredRE.MatchString(ln) {
 			cur.retired = true
+		}
+		if m := appliesRE.FindStringSubmatch(ln); m != nil && cur.applies == nil {
+			cur.applies = parseApplies(m[1])
 		}
 	}
 	flush()
@@ -146,27 +166,65 @@ func (s *syncer) setKind(prefix, name string) {
 	}
 }
 
-// setRef writes a ref unless kind, value and home already match.
-func (s *syncer) setRef(key, value, kind, home string) {
+// appliesOf reads a ref's stored applies list.
+func appliesOf(r *omap) []string {
+	var out []string
+	if arr, ok := r.Get("applies").([]any); ok {
+		for _, v := range arr {
+			out = append(out, pystr(v))
+		}
+	}
+	return out
+}
+
+func sameStrings(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// setRef writes a ref unless kind, value, home and applies already match. A changed ref keeps its unknown fields.
+func (s *syncer) setRef(key, value, kind, home string, applies []string) {
 	var resolved any = "unknown"
 	if kv, ok := s.kinds.Lookup(prefixOf(key)); ok {
 		resolved = kv
 	}
-	if old, ok := s.refs.Get(key).(*omap); ok &&
-		old.Get("kind") == resolved && old.Get("value") == value && pystr(old.Get("home")) == home {
+	old, existed := s.refs.Get(key).(*omap)
+	if existed && old.Get("kind") == resolved && old.Get("value") == value &&
+		pystr(old.Get("home")) == home && sameStrings(appliesOf(old), applies) {
 		s.same++
 		return
 	}
 	entry := newOmap()
+	if existed {
+		entry = old
+	}
 	entry.Set("kind", resolved)
 	entry.Set("value", value)
 	entry.Set("set_at", now())
+	entry.Delete("title")
+	entry.Delete("url")
 	if m := linkRE.FindStringSubmatch(value); m != nil {
 		entry.Set("title", m[1])
 		entry.Set("url", m[2])
 	}
+	entry.Delete("home")
 	if home != "" {
 		entry.Set("home", home)
+	}
+	entry.Delete("applies")
+	if len(applies) > 0 {
+		list := make([]any, len(applies))
+		for i, g := range applies {
+			list[i] = g
+		}
+		entry.Set("applies", list)
 	}
 	s.say("would set %s [%s] %s @ %s\n", key, pystr(resolved), value, home)
 	s.refs.Set(key, entry)
@@ -215,7 +273,7 @@ func (s *syncer) canon(root string) error {
 				s.rmRef(e.id)
 				continue
 			}
-			s.setRef(e.id, e.text, kind, fmt.Sprintf("%s:%d", rel, e.line))
+			s.setRef(e.id, e.text, kind, fmt.Sprintf("%s:%d", rel, e.line), e.applies)
 			live[e.id] = true
 		}
 		s.prune(prefix, nil, live)
@@ -264,12 +322,12 @@ func (s *syncer) github(root string) {
 			liveI, liveP := map[string]bool{}, map[string]bool{}
 			for _, r := range issues {
 				k := fmt.Sprintf("issue#%d", r.Number)
-				s.setRef(k, "["+r.Title+"]("+r.URL+")", "issue", "")
+				s.setRef(k, "["+r.Title+"]("+r.URL+")", "issue", "", nil)
 				liveI[k] = true
 			}
 			for _, r := range prs {
 				k := fmt.Sprintf("pr#%d", r.Number)
-				s.setRef(k, "["+r.Title+"]("+r.URL+")", "pr", "")
+				s.setRef(k, "["+r.Title+"]("+r.URL+")", "pr", "", nil)
 				liveP[k] = true
 			}
 			s.prune("issue#", nil, liveI)
@@ -390,7 +448,7 @@ func (s *syncer) cactus(root string) {
 	live := map[string]bool{}
 	for i, k := range keys {
 		if v, ok := qual[k]; ok {
-			s.setRef(k, v, "answer", rels[i]+":1")
+			s.setRef(k, v, "answer", rels[i]+":1", nil)
 			live[k] = true
 		}
 	}

@@ -1,7 +1,7 @@
 // main.go — entry point and shared plumbing for the refs CLI.
 //
 // Responsibilities:
-//   - dispatch argv: --help, `hook`, `seed`, `sync`, everything else to the refs command
+//   - dispatch argv: --help, `hook`, `seed`, `sync`, `guard`, everything else to the refs command
 //   - own the app type (stdin/stdout/stderr) so tests can drive the CLI in-process
 //   - die(): print `refs: ...` to stderr and unwind with an exit code
 //   - hold the HELP text, written for a model reader
@@ -38,10 +38,13 @@ USAGE
                                     answered cactus rows; --dry-run writes nothing
   refs seed                         print how to populate an empty project
   refs hook                         SessionStart hook (stdin payload, JSON out)
+  refs guard                        PreToolUse hook: lists the truths and nevers whose
+                                    "Applies to:" globs cover the file being edited;
+                                    advice only, never blocks
 
 KEYS
   Key prefix is the kind: R20 -> R, pr#131 -> pr#. Keys start with a non-digit
-  and not '-'. Reserved: rm kind kinds home seed hook ids sync.
+  and not '-'. Reserved: rm kind kinds home seed hook ids sync guard.
   Unknown prefix saves as kind=unknown and nags; define it with --kind or
   ` + "`refs kind PREFIX NAME`" + `.
   VALUE of the form [title](url) is parsed into title and url.
@@ -57,6 +60,11 @@ SYNC
   Canon (docs/canon/*.md) syncs itself: any refs command or the hook re-reads
   the canon first when a canon file is newer than refs.json. Edit the md, not
   the refs. GitHub and cactus sync only on ` + "`refs sync --github --cactus`" + `.
+
+APPLIES
+  A canon block's "Applies to: <glob>, <glob>" line (or "all") syncs into the
+  ref's "applies" list. The hook lists truths and nevers as guards; ` + "`refs guard`" + `
+  repeats the ones covering a file just before you edit it. Read the home first.
 
 HOME
   --home PATH[:LINE] names the file that is the source of truth for a ref.
@@ -97,6 +105,8 @@ func run(argv []string, stdin io.Reader, stdout, stderr io.Writer) (code int) {
 			return 0
 		case "hook":
 			return a.cmdHook()
+		case "guard":
+			return a.cmdGuard()
 		case "sync":
 			return a.cmdSync(argv[1:])
 		case "seed":
