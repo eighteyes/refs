@@ -15,8 +15,8 @@ touched: .ai/readme/README.md, main.go, hook.go, store.go
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/.ai/readme/README.md
-- /Users/god/projects/ai-tooling/utils/refs/README.md
+- .ai/readme/README.md
+- README.md
 
 ## Options
 

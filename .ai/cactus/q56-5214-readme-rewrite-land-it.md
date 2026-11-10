@@ -10,8 +10,8 @@ asked at: 2026-11-10T16:57:28.054268+00:00
 
 ## Files
 
-- /Users/god/projects/ai-tooling/utils/refs/.ai/readme/README.md
-- /Users/god/projects/ai-tooling/utils/refs/README.md
+- .ai/readme/README.md
+- README.md
 
 ## Options
 
